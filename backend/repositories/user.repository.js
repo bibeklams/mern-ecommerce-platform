@@ -5,3 +5,9 @@ export const findByEmail = (email) => {
 export const createUser = (userData) => {
   return User.create({ userData });
 };
+
+export const updateUser = (id, data) => {
+  return User.findByIdAndUpdate(id, data, {
+    new: true,
+  });
+};
