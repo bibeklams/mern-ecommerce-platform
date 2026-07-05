@@ -19,6 +19,7 @@ const optSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date,
+      default: () => new Date(Date.now() + 5 * 60 * 1000), // 10 minutes
       expires: 0,
     },
   },
