@@ -28,7 +28,7 @@ const sessionSchema = new mongoose.Schema(
 
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      default: () => new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 7 days
       expires: 0,
     },
   },

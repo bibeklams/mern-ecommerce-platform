@@ -2,6 +2,8 @@ import * as authService from "../services/auth.service.js";
 
 export const register = async (req, res, next) => {
   try {
+    console.log(req.body);
+
     const user = await authService.register(req.body);
 
     res.status(201).json({
@@ -75,11 +77,12 @@ export const logout = async (req, res, next) => {
 
     await authService.logout(refreshToken);
 
-    res.claerCookie("accessToken", result.accessToken, {
+    res.clearCookie("accessToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
+
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -99,7 +102,7 @@ export const logoutFromAllDevice = async (req, res, next) => {
   try {
     await authService.logoutFromAllDevice(req.user.userId);
 
-    res.cookie("accessToken", result.accessToken, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

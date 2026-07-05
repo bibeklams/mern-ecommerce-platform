@@ -9,9 +9,12 @@ const sendEmail = async ({ to, subject, html }) => {
       html,
     });
 
+    console.log("Email sent:", info.response);
+
     return info;
   } catch (error) {
-    throw new Error("Failed to send email.");
+    console.error("Email Error:", error);
+    throw error;
   }
 };
 

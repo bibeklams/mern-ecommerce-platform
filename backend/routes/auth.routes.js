@@ -10,6 +10,7 @@ router.post("/register", authController.register);
 // Verify email
 router.post("/verify-email", authController.verifyEmail);
 
+router.post("/login", authController.login);
 // Refresh token (NO protect)
 router.post("/refreshToken", authController.refreshToken);
 

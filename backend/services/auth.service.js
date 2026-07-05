@@ -40,7 +40,11 @@ export const register = async (data) => {
   });
 
   // Send email
-  await sendVerificationEmail(user.email, user.name, otp);
+  await sendVerificationEmail({
+    email: user.email,
+    name: user.name,
+    otp,
+  });
 
   return user;
 };
