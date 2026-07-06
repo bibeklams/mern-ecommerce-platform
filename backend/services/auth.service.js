@@ -174,7 +174,7 @@ export const googleLogin = async ({ idToken, userAgent, ipAddress }) => {
     user = await userRepository.createUser({
       name,
       email,
-      provider: "google",
+      provider: "GOOGLE",
       googleId,
       imageUrl: picture,
       password: null,

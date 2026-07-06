@@ -19,10 +19,6 @@ router.post("/refreshToken", authController.refreshToken);
 router.post("/logout", protect, authController.logout);
 
 // Logout from all devices (protected)
-router.post(
-  "/logoutFromAllDevice",
-  protect,
-  authController.logoutFromAllDevice,
-);
+router.post("/logout-all", protect, authController.logoutFromAllDevice);
 
 export default router;
