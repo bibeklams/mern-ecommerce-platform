@@ -11,6 +11,7 @@ router.post("/register", authController.register);
 router.post("/verify-email", authController.verifyEmail);
 
 router.post("/login", authController.login);
+router.post("/google-login", authController.googleLogin);
 // Refresh token (NO protect)
 router.post("/refreshToken", authController.refreshToken);
 

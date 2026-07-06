@@ -58,6 +58,36 @@ export const login = async (req, res, next) => {
     next(error);
   }
 };
+export const googleLogin = async (req, res, next) => {
+  try {
+    const result = await authService.googleLogin({
+      idToken: req.body.idToken,
+      userAgent: req.get("user-agent"),
+      ipAddress: req.ip,
+    });
+    res.cookie("accessToken", result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: result.user,
+      accessToken: result.accessToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const refreshToken = async (req, res, next) => {
   try {
     const result = await authService.refreshToken(req.cookies.refreshToken);

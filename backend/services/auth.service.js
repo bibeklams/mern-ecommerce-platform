@@ -10,6 +10,7 @@ import {
   generateRefreshToken,
 } from "../utils/generateToken.js";
 import jwt from "jsonwebtoken";
+import { verifyGoogleToken } from "../utils/googleAuth.js";
 
 export const register = async (data) => {
   // Check if user already exists
@@ -141,6 +142,90 @@ export const login = async ({ email, password, userAgent, ipAddress }) => {
   // Remove password before sending user
   const { password: hashedPassword, ...safeUser } = user.toObject();
 
+  return {
+    user: safeUser,
+    accessToken,
+    refreshToken,
+  };
+};
+export const googleLogin = async ({ idToken, userAgent, ipAddress }) => {
+  // 1. Validate input
+  if (!idToken) {
+    throwError("Google ID token is required", 400);
+  }
+
+  // 2. Verify Google ID Token
+  const payload = await verifyGoogleToken(idToken);
+
+  const { sub: googleId, email, name, picture, email_verified } = payload;
+
+  // 3. Ensure Google has verified the email
+  if (!email_verified) {
+    throwError("Google email is not verified", 403);
+  }
+
+  // 4. Find existing user
+  let user = await userRepository.findByEmail(email);
+
+  // --------------------------------------------
+  // CASE 1: User doesn't exist
+  // --------------------------------------------
+  if (!user) {
+    user = await userRepository.createUser({
+      name,
+      email,
+      provider: "google",
+      googleId,
+      imageUrl: picture,
+      password: null,
+      isVerified: true,
+    });
+  }
+
+  // --------------------------------------------
+  // CASE 2: Local account exists but not linked
+  // --------------------------------------------
+  else if (!user.googleId) {
+    user.googleId = googleId;
+
+    // Since Google already verified the email
+    user.isVerified = true;
+
+    // Optional: update profile picture
+    if (!user.imageUrl) {
+      user.imageUrl = picture;
+    }
+
+    await user.save();
+  }
+
+  // --------------------------------------------
+  // CASE 3: Already linked
+  // --------------------------------------------
+  // Nothing to update
+
+  // 5. Generate JWTs
+  const accessToken = generateAccessToken({
+    userId: user._id,
+    role: user.role,
+  });
+
+  const refreshToken = generateRefreshToken({
+    userId: user._id,
+  });
+
+  // 6. Create session
+  await sessionRepository.createSession({
+    user: user._id,
+    refreshToken,
+    userAgent,
+    ipAddress,
+  });
+
+  // 7. Remove password
+  const { password, ...safeUser } = user.toObject();
+
+  // 8. Return response
   return {
     user: safeUser,
     accessToken,
