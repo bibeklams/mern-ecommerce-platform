@@ -1,7 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import errorMiddleware from "./middleware/error.middleware.js";
-import authRoutes from "./routes/auth.routes.js";
+import mainRoutes from "./routes/mainRoutes.js";
 import cors from "cors";
 const app = express();
 
@@ -14,7 +14,7 @@ app.use(
     credentials: true,
   }),
 );
-app.use("/api/auth", authRoutes);
+app.use("/api", mainRoutes);
 
 // Error middleware (always last)
 app.use(errorMiddleware);
