@@ -22,6 +22,18 @@ export const getProfile = async () => {
   const res = await api.get("/auth/profile");
   return res.data;
 };
+export const forgotPassword = async (data) => {
+  const response = await api.post("/auth/forgot-password", data);
+  return response.data;
+};
+export const verifyResetOtp = async (data) => {
+  const response = await api.post("/auth/verify-reset-otp", data);
+  return response.data;
+};
+export const resetPassword = async (data) => {
+  const response = await api.patch("/auth/reset-password", data);
+  return response.data;
+};
 export const logoutApi = async () => {
   const response = await api.post("/auth/logout");
   return response.data;
