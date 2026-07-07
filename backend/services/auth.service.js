@@ -269,10 +269,11 @@ export const refreshToken = async (token) => {
 };
 
 export const forgotPassword = async ({ email }) => {
-  const existingUser = await userRepository.findByEmail({
-    email,
-    isVerified: true,
-  });
+  const existingUser = await userRepository.findByEmail(email);
+
+  if (!existingUser || !existingUser.isVerified) {
+    throwError("User not found", 400);
+  }
 
   if (!existingUser) {
     throwError("No user found", 400);
@@ -306,13 +307,10 @@ export const forgotPassword = async ({ email }) => {
 
 export const verifyResetOtp = async ({ email, otp }) => {
   // Find user
-  const user = await userRepository.findByEmail({
-    email,
-    isVerified: true,
-  });
+  const user = await userRepository.findByEmail(email);
 
-  if (!user) {
-    throwError("No user found", 400);
+  if (!user || !user.isVerified) {
+    throwError("User not found", 400);
   }
 
   // Find password reset OTP
