@@ -68,3 +68,105 @@ export const suspendUser = (id) => {
 export const unsuspendUser = (id) => {
   return updateUserStatus(id, "ACTIVE");
 };
+
+export const applyForSeller = async (id) => {
+  const user = await userRepository.findUserById(id);
+
+  if (!user) {
+    throwError("User not found", 404);
+  }
+
+  if (user.role === "SELLER") {
+    throwError("User is already a seller", 400);
+  }
+
+  if (user.role === "ADMIN") {
+    throwError("Admin cannot apply to become a seller", 400);
+  }
+
+  if (user.sellerStatus === "PENDING") {
+    throwError("Seller application is already pending", 400);
+  }
+
+  const updatedUser = await userRepository.updateUser(id, {
+    sellerStatus: "PENDING",
+  });
+
+  return {
+    message:
+      "Seller application submitted successfully. Please wait for admin approval.",
+    user: updatedUser,
+  };
+};
+export const approveSeller = async (id) => {
+  const user = await userRepository.findUserById(id);
+
+  if (!user) {
+    throwError("User not found", 404);
+  }
+  if (user.status === "SUSPENDED") {
+    throwError("Seller id has been suspended", 400);
+  }
+  if (user.status === "BANNED") {
+    throwError("Seller id has been banned", 400);
+  }
+  if (user.sellerStatus === "NONE") {
+    throwError("User has not applied to become a seller", 400);
+  }
+
+  if (user.sellerStatus === "REJECTED") {
+    throwError("Seller application was rejected", 400);
+  }
+
+  if (user.sellerStatus === "APPROVED") {
+    throwError("Seller is already approved", 400);
+  }
+
+  if (user.sellerStatus !== "PENDING") {
+    throwError("Seller application is not pending", 400);
+  }
+
+  const updatedUser = await userRepository.updateUser(id, {
+    role: "SELLER",
+    sellerStatus: "APPROVED",
+  });
+
+  return {
+    message: "Seller application approved successfully.",
+    user: updatedUser,
+  };
+};
+
+export const rejectSeller = async (id) => {
+  const user = await userRepository.findUserById(id);
+
+  if (!user) {
+    throwError("User not found", 404);
+  }
+
+  if (user.sellerStatus === "NONE") {
+    throwError("User has not applied to become a seller", 400);
+  }
+
+  if (user.sellerStatus === "REJECTED") {
+    throwError("Seller application is already rejected", 400);
+  }
+
+  if (user.sellerStatus === "APPROVED") {
+    throwError("Seller application has already been approved", 400);
+  }
+
+  if (user.sellerStatus !== "PENDING") {
+    throwError("Seller application is not pending", 400);
+  }
+
+  const updatedUser = await userRepository.updateUser(id, {
+    role: "USER",
+    sellerStatus: "REJECTED",
+  });
+
+  return {
+    message: "Seller application rejected successfully.",
+    user: updatedUser,
+  };
+};

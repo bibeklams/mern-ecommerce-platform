@@ -1,5 +1,5 @@
 import express from "express";
-import * as userController from "../controllers/user.controller.js";
+import * as userController from "../controllers/user.contoller.js";
 import protect from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
 
@@ -38,5 +38,17 @@ router.patch(
   authorize("ADMIN"),
   userController.unSuspendUser,
 );
-
+router.post("/apply-seller", protect, userController.applyForSeller);
+router.patch(
+  "/:id/approve-seller",
+  protect,
+  authorize("ADMIN"),
+  userController.approveSeller,
+);
+router.patch(
+  "/:id/reject-seller",
+  protect,
+  authorize("ADMIN"),
+  userController.rejectSeller,
+);
 export default router;

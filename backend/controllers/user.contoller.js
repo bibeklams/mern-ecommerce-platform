@@ -50,6 +50,7 @@ export const getSingleUser = async (req, res, next) => {
     next(error);
   }
 };
+
 export const banUser = async (req, res, next) => {
   try {
     const result = await userService.banUser(req.params.id);
@@ -93,6 +94,42 @@ export const unSuspendUser = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const applyForSeller = async (req, res, next) => {
+  try {
+    const result = await userService.applyForSeller(req.user.id);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const approveSeller = async (req, res, next) => {
+  try {
+    const result = await userService.approveSeller(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const rejectSeller = async (req, res, next) => {
+  try {
+    const result = await userService.rejectSeller(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
     });
   } catch (error) {
     next(error);
