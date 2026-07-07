@@ -6,6 +6,6 @@ export const createOtp = (data) => {
 export const findOtp = (query) => {
   return Otp.findOne(query);
 };
-export const deleteOtp = (id) => {
-  return Otp.findByIdAndDelete(id);
+export const deleteOtp = (filter) => {
+  return Otp.findOneAndDelete(filter);
 };
