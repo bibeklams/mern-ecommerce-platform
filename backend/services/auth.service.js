@@ -113,7 +113,13 @@ export const login = async ({ email, password, userAgent, ipAddress }) => {
   if (!user.isVerified) {
     throwError("Please verify your email first", 403);
   }
+  if (user.status === "SUSPENDED") {
+    throwError("Your account has been suspended", 403);
+  }
 
+  if (user.status === "BANNED") {
+    throwError("Your account has been banned", 403);
+  }
   // Compare password
   const isMatch = await bcrypt.compare(password, user.password);
 
@@ -167,10 +173,28 @@ export const googleLogin = async ({ idToken, userAgent, ipAddress }) => {
   // 4. Find existing user
   let user = await userRepository.findByEmail(email);
 
-  // --------------------------------------------
-  // CASE 1: User doesn't exist
-  // --------------------------------------------
-  if (!user) {
+  // Existing user
+  if (user) {
+    if (user.status === "BANNED") {
+      throwError("Your account has been banned", 403);
+    }
+
+    if (user.status === "SUSPENDED") {
+      throwError("Your account has been suspended", 403);
+    }
+
+    if (!user.googleId) {
+      user.googleId = googleId;
+      user.isVerified = true;
+
+      if (!user.imageUrl) {
+        user.imageUrl = picture;
+      }
+
+      await user.save();
+    }
+  } else {
+    // Create new Google user
     user = await userRepository.createUser({
       name,
       email,
@@ -182,22 +206,7 @@ export const googleLogin = async ({ idToken, userAgent, ipAddress }) => {
     });
   }
 
-  // --------------------------------------------
-  // CASE 2: Local account exists but not linked
-  // --------------------------------------------
-  else if (!user.googleId) {
-    user.googleId = googleId;
-
-    // Since Google already verified the email
-    user.isVerified = true;
-
-    // Optional: update profile picture
-    if (!user.imageUrl) {
-      user.imageUrl = picture;
-    }
-
-    await user.save();
-  }
+  // Generate tokens...
 
   // --------------------------------------------
   // CASE 3: Already linked
