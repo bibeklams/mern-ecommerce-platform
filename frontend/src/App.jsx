@@ -5,7 +5,7 @@ import { loginSuccess, logout } from "./redux/authSlice";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import { GoogleLogin } from "@react-oauth/google";
+import EmailVerifiedPage from "./pages/EmailVerifiedPage";
 
 function App() {
   return (
@@ -13,6 +13,7 @@ function App() {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<EmailVerifiedPage />} />
     </Routes>
   );
 }

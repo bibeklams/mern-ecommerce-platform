@@ -12,3 +12,6 @@ export const updateUser = (id, data) => {
     new: true,
   });
 };
+export const deleteUnverifiedUser = (filter) => {
+  return User.deleteOne(filter);
+};

@@ -15,6 +15,9 @@ router.post("/google-login", authController.googleLogin);
 // Refresh token (NO protect)
 router.post("/refreshToken", authController.refreshToken);
 
+router.post("/forgot-password", authController.forgotPassword);
+router.post("/verify-reset-otp", authController.verifyResetOtp);
+router.patch("/reset-password", authController.resetPassword);
 // Logout (protected)
 router.post("/logout", protect, authController.logout);
 

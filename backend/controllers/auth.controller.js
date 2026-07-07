@@ -27,6 +27,53 @@ export const verifyEmail = async (req, res, next) => {
     next(error);
   }
 };
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const result = await authService.forgotPassword({ email: req.body.email });
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const verifyResetOtp = async (req, res, next) => {
+  try {
+    const result = await authService.verifyResetOtp({
+      email: req.body.email,
+      otp: req.body.otp,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const result = await authService.resetPassword({
+      email: req.body.email,
+      newPassword: req.body.newPassword,
+      confirmPassword: req.body.confirmPassword,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const login = async (req, res, next) => {
   try {
     const result = await authService.login({

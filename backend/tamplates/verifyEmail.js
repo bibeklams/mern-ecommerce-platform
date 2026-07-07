@@ -9,7 +9,7 @@ const verifyEmailTemplate = (name, otp) => {
 
       <h1>${otp}</h1>
 
-      <p>This code expires in 10 minutes.</p>
+      <p>This code expires in 5 minutes.</p>
 
       <p>If you didn't create an account, please ignore this email.</p>
     </div>

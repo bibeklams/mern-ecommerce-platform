@@ -4,7 +4,7 @@ import { throwError } from "../utils/errorHandler.js";
 import bcrypt from "bcrypt";
 import * as otpRepository from "../repositories/opt.repository.js";
 import { generateOtp } from "../utils/generateOTP.js";
-import { sendVerificationEmail } from "./email.service.js";
+import { sendVerificationEmail, sendResetOtp } from "./email.service.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -268,6 +268,117 @@ export const refreshToken = async (token) => {
   };
 };
 
+export const forgotPassword = async ({ email }) => {
+  const existingUser = await userRepository.findByEmail({
+    email,
+    isVerified: true,
+  });
+
+  if (!existingUser) {
+    throwError("No user found", 400);
+  }
+
+  // Optional: Delete previous password reset OTP
+  await otpRepository.deleteOtp({
+    user: existingUser._id,
+    type: "PASSWORD_RESET",
+  });
+
+  const otp = generateOtp();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+
+  await otpRepository.createOtp({
+    user: existingUser._id,
+    otp: hashedOtp,
+    type: "PASSWORD_RESET",
+  });
+
+  await sendResetOtp({
+    email: existingUser.email,
+    name: existingUser.name,
+    otp,
+  });
+
+  return {
+    message: "Password reset OTP sent successfully.",
+  };
+};
+
+export const verifyResetOtp = async ({ email, otp }) => {
+  // Find user
+  const user = await userRepository.findByEmail({
+    email,
+    isVerified: true,
+  });
+
+  if (!user) {
+    throwError("No user found", 400);
+  }
+
+  // Find password reset OTP
+  const otpDoc = await otpRepository.findOtp({
+    user: user._id,
+    type: "PASSWORD_RESET",
+  });
+
+  if (!otpDoc) {
+    throwError("OTP not found or expired", 400);
+  }
+
+  // Check expiration
+  if (otpDoc.expiresAt < new Date()) {
+    await otpRepository.deleteOtp({
+      _id: otpDoc._id,
+    });
+
+    throwError("OTP has expired", 400);
+  }
+
+  // Compare OTP
+  const isMatch = await bcrypt.compare(otp, otpDoc.otp);
+
+  if (!isMatch) {
+    throwError("Invalid OTP", 400);
+  }
+
+  // Delete OTP
+  await otpRepository.deleteOtp({
+    _id: otpDoc._id,
+  });
+
+  return {
+    message: "OTP verified successfully.",
+  };
+};
+export const resetPassword = async ({
+  email,
+  newPassword,
+  confirmPassword,
+}) => {
+  const user = await userRepository.findByEmail(email);
+
+  if (!user) {
+    throwError("User not found", 404);
+  }
+
+  if (!newPassword?.trim() || !confirmPassword?.trim()) {
+    throwError("Please enter both passwords", 400);
+  }
+
+  if (newPassword !== confirmPassword) {
+    throwError("Passwords do not match", 400);
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await userRepository.updateUser(user._id, {
+    password: hashedPassword,
+  });
+
+  return {
+    message: "Password reset successfully.",
+  };
+};
 export const logout = async (refreshToken) => {
   if (refreshToken) {
     await sessionRepository.deleteSessionByRefreshToken(refreshToken);

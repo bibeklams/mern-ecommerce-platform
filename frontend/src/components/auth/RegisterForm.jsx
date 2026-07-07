@@ -20,7 +20,11 @@ function RegisterForm() {
       alert(data.message);
       resetForm();
 
-      navigate("/login");
+      navigate("/verify-email", {
+        state: {
+          email: values.email,
+        },
+      });
     } catch (error) {
       alert(error.response?.data?.message || "Something went wrong");
     }

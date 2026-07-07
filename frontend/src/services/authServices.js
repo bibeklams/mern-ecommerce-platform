@@ -12,7 +12,10 @@ export const googleLogin = async (idToken) => {
   const response = await api.post("/auth/google-login", {
     idToken,
   });
-
+  return response.data;
+};
+export const verifiedEmail = async (data) => {
+  const response = await api.post("/auth/verified-email", data);
   return response.data;
 };
 export const getProfile = async () => {
