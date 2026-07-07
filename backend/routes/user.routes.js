@@ -32,12 +32,7 @@ router.patch(
   authorize("ADMIN"),
   userController.suspendUser,
 );
-router.patch(
-  "/:id/unsuspend",
-  protect,
-  authorize("ADMIN"),
-  userController.unSuspendUser,
-);
+
 router.post("/apply-seller", protect, userController.applyForSeller);
 router.patch(
   "/:id/approve-seller",
