@@ -4,8 +4,8 @@ export const createCategory = (data) => {
   return Category.create(data);
 };
 
-export const getSingleCategory = (filter) => {
-  return Category.findOne(filter);
+export const getSingleCategory = (id) => {
+  return Category.findById(id);
 };
 
 export const getAllCategory = () => {
@@ -21,4 +21,7 @@ export const updateOne = (id, data) => {
 
 export const deleteOne = (id) => {
   return Category.findByIdAndDelete(id);
+};
+export const findOne = (filter) => {
+  return Category.findOne(filter);
 };
