@@ -5,18 +5,24 @@ export const createProduct = (data) => {
 };
 
 export const findById = (id) => {
-  return Product.findById(id);
+  return Product.findById(id)
+    .populate("seller", "name")
+    .populate("category", "name");
 };
 
 export const findOne = (filter) => {
-  return Product.findOne(filter);
+  return Product.findOne(filter).populate("category", "name");
+};
+export const countProducts = (filter = {}) => {
+  return Product.countDocuments(filter);
 };
 
 export const findAllProducts = (filter = {}, options = {}) => {
   return Product.find(filter)
+    .populate("category", "name")
     .sort(options.sort || {})
     .skip(options.skip || 0)
-    .limit(options.limit || 0);
+    .limit(options.limit || 10);
 };
 
 export const updateProduct = (id, data) => {

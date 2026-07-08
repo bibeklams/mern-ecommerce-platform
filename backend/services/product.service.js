@@ -3,6 +3,7 @@ import * as userRepository from "../repositories/user.repository.js";
 import * as categoryRepository from "../repositories/category.repository.js";
 import { uploadToCloudinary } from "../utils/cloudinaryHandler.js";
 import { throwError } from "../utils/throwError.js";
+import cloudinary from "../config/cloudinary.js";
 
 export const addProduct = async (data, sellerId, file) => {
   // Check seller exists
@@ -57,5 +58,64 @@ export const addProduct = async (data, sellerId, file) => {
   return {
     message: "Product created successfully",
     product,
+  };
+};
+
+export const getAllSellerProduct = async (sellerId, options) => {
+  const products = await productRepository.findAllProducts(
+    { seller: sellerId },
+    options,
+  );
+
+  const totalProducts = await productRepository.countProducts({
+    seller: sellerId,
+  });
+
+  const totalPages = Math.ceil(totalProducts / options.limit);
+
+  return {
+    products,
+    totalPages,
+    currentPage: options.page,
+  };
+};
+export const getSingleProduct = async (id) => {
+  const product = await productRepository.findById(id);
+
+  if (!product) {
+    throwError("No product found", 404);
+  }
+
+  return product;
+};
+export const updateProduct = async (id, data, file) => {
+  const existingProduct = await productRepository.findById(id);
+
+  if (!existingProduct) {
+    throwError("No product found", 404);
+  }
+
+  if (file) {
+    // Delete old images
+    for (const image of existingProduct.images) {
+      await cloudinary.uploader.destroy(image.public_id);
+    }
+
+    // Upload new image
+    const result = await uploadToCloudinary(file.buffer);
+
+    data.images = [
+      {
+        public_id: result.public_id,
+        secure_url: result.secure_url,
+      },
+    ];
+  }
+
+  const updatedProduct = await productRepository.updateProduct(id, data);
+
+  return {
+    message: "Updated Successfully",
+    product: updatedProduct,
   };
 };
