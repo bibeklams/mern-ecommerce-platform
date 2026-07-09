@@ -2,12 +2,12 @@ import * as productRepository from "../repositories/product.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
 import * as categoryRepository from "../repositories/category.repository.js";
 import { uploadToCloudinary } from "../utils/cloudinaryHandler.js";
-import { throwError } from "../utils/throwError.js";
+import { throwError } from "../utils/errorHandler.js";
 import cloudinary from "../config/cloudinary.js";
 
 export const addProduct = async (data, sellerId, files) => {
   // Check seller exists
-  const seller = await userRepository.findById(sellerId);
+  const seller = await userRepository.findUserById(sellerId);
 
   if (!seller) {
     throwError("Seller not found", 404);
@@ -22,7 +22,7 @@ export const addProduct = async (data, sellerId, files) => {
   if (seller.role === "SELLER" && seller.sellerStatus !== "APPROVED") {
     throwError("Seller account is not approved", 403);
   }
-  const category = await categoryRepository.findById(data.category);
+  const category = await categoryRepository.getSingleCategory(data.category);
 
   if (!category) {
     throwError("Category not found", 404);
@@ -31,6 +31,10 @@ export const addProduct = async (data, sellerId, files) => {
   const finalPrice = Number(data.price) - Number(data.discountAmount || 0);
 
   // Upload image if provided
+  if (!files || files.length === 0) {
+    throwError("At least one product image is required", 400);
+  }
+
   let images = [];
 
   for (const file of files) {
@@ -41,9 +45,7 @@ export const addProduct = async (data, sellerId, files) => {
       secure_url: result.secure_url,
     });
   }
-  if (!result) {
-    throwError("Image upload failed", 500);
-  }
+
   const productData = {
     ...data,
     seller: sellerId,
@@ -96,7 +98,7 @@ export const updateProduct = async (id, sellerId, data, files) => {
   }
 
   // Check user exists
-  const user = await userRepository.findById(sellerId);
+  const user = await userRepository.findUserById(sellerId);
 
   if (!user) {
     throwError("Unauthorized", 403);
@@ -175,7 +177,7 @@ export const getAllProduct = async (search, category, options) => {
   };
 };
 export const deleteProduct = async (productId, userId) => {
-  const user = await userRepository.findById(userId);
+  const user = await userRepository.findUserById(userId);
 
   if (!user) {
     throwError("Unauthorized user", 403);

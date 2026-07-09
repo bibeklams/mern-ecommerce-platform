@@ -1,6 +1,6 @@
 import express from "express";
 import protect from "../middleware/auth.middleware.js";
-import { authorize } from "../middleware/role.middleware";
+import { authorize } from "../middleware/role.middleware.js";
 import upload from "../middleware/upload.middleware.js";
 import * as productController from "../controllers/product.contoller.js";
 
