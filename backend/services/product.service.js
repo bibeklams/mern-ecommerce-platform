@@ -5,7 +5,7 @@ import { uploadToCloudinary } from "../utils/cloudinaryHandler.js";
 import { throwError } from "../utils/throwError.js";
 import cloudinary from "../config/cloudinary.js";
 
-export const addProduct = async (data, sellerId, file) => {
+export const addProduct = async (data, sellerId, files) => {
   // Check seller exists
   const seller = await userRepository.findById(sellerId);
 
@@ -33,7 +33,7 @@ export const addProduct = async (data, sellerId, file) => {
   // Upload image if provided
   let images = [];
 
-  if (file) {
+  for (const file of files) {
     const result = await uploadToCloudinary(file.buffer);
 
     images.push({
@@ -60,7 +60,6 @@ export const addProduct = async (data, sellerId, file) => {
     product,
   };
 };
-
 export const getAllSellerProduct = async (sellerId, options) => {
   const products = await productRepository.findAllProducts(
     { seller: sellerId },
@@ -88,34 +87,119 @@ export const getSingleProduct = async (id) => {
 
   return product;
 };
-export const updateProduct = async (id, data, file) => {
+export const updateProduct = async (id, sellerId, data, files) => {
+  // Check product exists
   const existingProduct = await productRepository.findById(id);
 
   if (!existingProduct) {
-    throwError("No product found", 404);
+    throwError("Product not found", 404);
   }
 
-  if (file) {
-    // Delete old images
+  // Check user exists
+  const user = await userRepository.findById(sellerId);
+
+  if (!user) {
+    throwError("Unauthorized", 403);
+  }
+
+  // Seller can only update their own product
+  if (
+    user.role === "SELLER" &&
+    existingProduct.seller.toString() !== sellerId
+  ) {
+    throwError("Only the product owner can update this product", 403);
+  }
+
+  // Replace images if new images are uploaded
+  if (files && files.length > 0) {
+    // Delete old images from Cloudinary
     for (const image of existingProduct.images) {
       await cloudinary.uploader.destroy(image.public_id);
     }
 
-    // Upload new image
-    const result = await uploadToCloudinary(file.buffer);
+    // Upload new images
+    data.images = [];
 
-    data.images = [
-      {
+    for (const file of files) {
+      const result = await uploadToCloudinary(file.buffer);
+
+      data.images.push({
         public_id: result.public_id,
         secure_url: result.secure_url,
-      },
-    ];
+      });
+    }
+  }
+
+  // Recalculate final price if needed
+  if (data.price || data.discountAmount) {
+    const price = Number(data.price ?? existingProduct.price);
+    const discount = Number(
+      data.discountAmount ?? existingProduct.discountAmount,
+    );
+
+    data.finalPrice = price - discount;
   }
 
   const updatedProduct = await productRepository.updateProduct(id, data);
 
   return {
-    message: "Updated Successfully",
+    message: "Product updated successfully",
     product: updatedProduct,
+  };
+};
+export const getAllProduct = async (search, category, options) => {
+  const filter = {};
+
+  if (search) {
+    filter.name = {
+      $regex: search,
+      $options: "i",
+    };
+  }
+
+  if (category) {
+    filter.category = category;
+  }
+
+  const products = await productRepository.findAllProducts(filter, options);
+
+  const totalProducts = await productRepository.countProducts(filter);
+
+  const totalPages = Math.ceil(totalProducts / options.limit);
+
+  return {
+    products,
+    currentPage: options.page,
+    totalPages,
+    totalProducts,
+  };
+};
+export const deleteProduct = async (productId, userId) => {
+  const user = await userRepository.findById(userId);
+
+  if (!user) {
+    throwError("Unauthorized user", 403);
+  }
+
+  if (user.role === "USER") {
+    throwError("Only sellers and admins can delete products", 403);
+  }
+
+  const product = await productRepository.findById(productId);
+
+  if (!product) {
+    throwError("Product not found", 404);
+  }
+
+  // Seller can delete only their own product
+  if (user.role === "SELLER" && product.seller.toString() !== userId) {
+    throwError("You can only delete your own products", 403);
+  }
+
+  const deletedProduct = await productRepository.deleteProduct(productId);
+
+  return {
+    message: "Product deleted successfully",
+    product: deletedProduct,
   };
 };

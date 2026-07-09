@@ -20,7 +20,7 @@ export const countProducts = (filter = {}) => {
 export const findAllProducts = (filter = {}, options = {}) => {
   return Product.find(filter)
     .populate("category", "name")
-    .sort(options.sort || {})
+    .sort(options.sort || { createdAt: -1 })
     .skip(options.skip || 0)
     .limit(options.limit || 10);
 };

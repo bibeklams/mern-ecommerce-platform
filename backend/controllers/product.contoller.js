@@ -4,8 +4,12 @@ export const addProduct = async (req, res, next) => {
   try {
     const productData = req.body;
     const sellerId = req.user.id;
-    const file = req.file;
-    const result = await productService.addProduct(productData, sellerId, file);
+    const files = req.files;
+    const result = await productService.addProduct(
+      productData,
+      sellerId,
+      files,
+    );
 
     res.status(201).json({
       success: true,
@@ -31,7 +35,9 @@ export const getAllSellerProduct = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      products: result.product,
+      products: result.products,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
     });
   } catch (error) {
     next(error);
@@ -53,16 +59,56 @@ export const updateProduct = async (req, res, next) => {
   try {
     const result = await productService.updateProduct(
       req.params.id,
+      req.user.id,
       req.body,
-      req.file,
+      req.files,
     );
 
     res.status(200).json({
       success: true,
       message: result.message,
       product: result.product,
-      totalPages: result.totalPages,
-      currentPage: result.currentPage,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const getAllProduct = async (req, res, next) => {
+  try {
+    const search = req.query.search;
+    const category = req.query.category;
+
+    const page = Number(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const options = { page, limit, skip };
+
+    const result = await productService.getAllProduct(
+      search,
+      category,
+      options,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteProduct = async (req, res, next) => {
+  try {
+    const result = await productService.deleteProduct(
+      req.params.id, // product ID
+      req.user.id, // logged-in user ID
+    );
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      product: result.product,
     });
   } catch (error) {
     next(error);
