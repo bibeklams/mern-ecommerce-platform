@@ -3,7 +3,7 @@ import * as wishlistServie from "../services/wishList.service.js";
 export const createWishlist = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const productId = req.params.id;
+    const productId = req.params.productId;
     const result = await wishlistServie.createWishlist(userId, productId);
     res.status(201).json({
       success: true,
@@ -28,7 +28,7 @@ export const findAllWishlist = async (req, res, next) => {
 export const deleteWishlist = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const productId = req.params.id;
+    const productId = req.params.productId;
     const result = await wishlistServie.deleteWishlist(userId, productId);
     res.status(200).json({
       success: true,
@@ -41,7 +41,7 @@ export const deleteWishlist = async (req, res, next) => {
 export const isWishlisted = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const productId = req.params.id;
+    const productId = req.params.productId;
     const result = await wishlistServie.isWishlisted(userId, productId);
     res.status(200).json({
       success: true,
