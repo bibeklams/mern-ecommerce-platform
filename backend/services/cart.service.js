@@ -66,3 +66,87 @@ export const addToCart = async (userId, productId) => {
     cart,
   };
 };
+export const myCart = async (userId) => {
+  const carts = await cartRepository.getAllCarts({
+    user: userId,
+  });
+
+  return {
+    carts,
+  };
+};
+export const updateCart = async (userId, productId, quantity) => {
+  // Validate quantity
+  if (quantity < 1) {
+    throwError("Quantity must be at least 1", 400);
+  }
+
+  // Check cart item
+  const cart = await cartRepository.findOne({
+    user: userId,
+    product: productId,
+  });
+
+  if (!cart) {
+    throwError("Cart item not found", 404);
+  }
+
+  // Check product
+  const product = await productRepository.findById(productId);
+
+  if (!product) {
+    throwError("Product not found", 404);
+  }
+
+  // Check stock
+  if (quantity > product.stock) {
+    throwError("Not enough stock available", 400);
+  }
+
+  // Update quantity
+  const updatedCart = await cartRepository.updateCart(cart._id, {
+    quantity,
+  });
+
+  return {
+    message: "Cart updated successfully",
+    cart: updatedCart,
+  };
+};
+export const deleteCart = async (userId, productId) => {
+  const cart = await cartRepository.findOne({
+    user: userId,
+    product: productId,
+  });
+
+  if (!cart) {
+    throwError("Cart item not found", 404);
+  }
+
+  await cartRepository.deleteCart({
+    _id: cart._id,
+  });
+
+  return {
+    message: "Cart item removed successfully",
+  };
+};
+export const countCart = async (userId) => {
+  const count = await cartRepository.countCart(userId);
+  return {
+    count,
+  };
+};
+export const clearCart = async (userId) => {
+  const result = await cartRepository.clearCart({
+    user: userId,
+  });
+
+  if (result.deletedCount === 0) {
+    throwError("Cart is already empty", 404);
+  }
+
+  return {
+    message: "Cart cleared successfully",
+  };
+};

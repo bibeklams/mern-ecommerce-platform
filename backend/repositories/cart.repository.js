@@ -5,8 +5,11 @@ export const createCart = (data) => {
 };
 
 export const getAllCarts = (filter) => {
-  return Cart.find(filter).populate("product", "name finalPrice images stock");
+  return Cart.find(filter)
+    .populate("product", "name finalPrice images stock")
+    .sort({ createdAt: -1 });
 };
+
 export const updateCart = (id, data) => {
   return Cart.findByIdAndUpdate(id, data, {
     new: true,
@@ -14,8 +17,8 @@ export const updateCart = (id, data) => {
   });
 };
 
-export const deleteCart = (data) => {
-  return Cart.deleteOne(data);
+export const deleteCart = (filter) => {
+  return Cart.deleteOne(filter);
 };
 
 export const countCart = (filter = {}) => {
