@@ -12,8 +12,10 @@ export const findOne = (filter) => {
   return Order.findOne(filter);
 };
 
-export const findAllOrder = (filter = {}) => {
-  return Order.find(filter).sort({ createdAt: -1 });
+export const findAll = (filter = {}) => {
+  return Order.find(filter)
+    .populate("user", "name email")
+    .sort({ createdAt: -1 });
 };
 
 export const update = (id, data) => {
@@ -21,4 +23,19 @@ export const update = (id, data) => {
     new: true,
     runValidators: true,
   });
+};
+export const updatePaymentStatus = async (req, res, next) => {
+  try {
+    const result = await orderService.updatePaymentStatus(
+      req.params.orderId,
+      req.body.paymentStatus,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
 };

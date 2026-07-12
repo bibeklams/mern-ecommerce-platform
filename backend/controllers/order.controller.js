@@ -1,86 +1,113 @@
-import * as orderRepository from "../repositories/order.repository.js";
-import * as cartRepository from "../repositories/cart.repository.js";
-import * as productRepository from "../repositories/product.repository.js";
-import * as userRepository from "../repositories/user.repository.js";
-import { throwError } from "../utils/errorHandler.js";
+import * as orderService from "../services/order.service.js";
 
-export const createOrder = async (userId, data) => {
-  // Check user
-  const user = await userRepository.findUserById(userId);
-  if (!user) {
-    throwError("User not found.", 404);
-  }
-
-  // Get user's cart
-  const cartItems = await cartRepository.findByUser(userId);
-
-  if (!cartItems.length) {
-    throwError("Cart is empty.", 400);
-  }
-
-  const items = [];
-  let totalAmount = 0;
-
-  // Validate products & prepare order items
-  for (const cartItem of cartItems) {
-    const product = await productRepository.findById(cartItem.product);
-
-    if (!product) {
-      throwError("Product not found.", 404);
-    }
-
-    if (product.status !== "ACTIVE") {
-      throwError(`${product.name} is not available.`, 400);
-    }
-
-    if (product.stock < cartItem.quantity) {
-      throwError(`${product.name} has insufficient stock.`, 400);
-    }
-
-    const totalPrice = product.finalPrice * cartItem.quantity;
-
-    items.push({
-      product: product._id,
-      seller: product.seller,
-      name: product.name,
-      image: product.images[0],
-      price: product.finalPrice,
-      quantity: cartItem.quantity,
-      totalPrice,
+export const createOrder = async (req, res, next) => {
+  try {
+    const result = await orderService.createOrder(req.user.id, req.body);
+    res.status(201).json({
+      success: true,
+      ...result,
     });
-
-    totalAmount += totalPrice;
+  } catch (error) {
+    next(error);
   }
+};
+export const getAllOrders = async (req, res, next) => {
+  try {
+    const result = await orderService.getAllOrders(req.query);
 
-  // Create order
-  const order = await orderRepository.createOrder({
-    user: userId,
-    items,
-    shippingAddress: data.shippingAddress,
-    paymentMethod: data.paymentMethod,
-    totalAmount,
-  });
-
-  // Reduce stock
-  for (const cartItem of cartItems) {
-    const product = await productRepository.findById(cartItem.product);
-
-    const updatedData = {
-      stock: product.stock - cartItem.quantity,
-    };
-
-    if (updatedData.stock === 0) {
-      updatedData.status = "OUT_OF_STOCK"; // Use your actual status value
-    }
-
-    await productRepository.updateProduct(product._id, updatedData);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
   }
+};
 
-  // Clear user's cart
-  await cartRepository.clearCart(userId);
+export const myOrders = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const result = await orderService.myOrders(userId);
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-  return {
-    message: "Order placed successfully.",
-    order,
-  };
+export const cancelOrder = async (req, res, next) => {
+  try {
+    const result = await orderService.cancelOrder(
+      req.user.id,
+      req.params.orderId,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const getSingleOrder = async (req, res, next) => {
+  try {
+    const result = await orderService.getSingleOrder(
+      req.user.id,
+      req.params.orderId,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const sellerUpdateOrderStatus = async (req, res, next) => {
+  try {
+    const result = await orderService.sellerUpdateOrderStatus(
+      req.user.id,
+      req.params.orderId,
+      req.body.orderStatus,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const adminUpdateOrderStatus = async (req, res, next) => {
+  try {
+    const result = await orderService.adminUpdateOrderStatus(
+      req.params.orderId,
+      req.body.orderStatus,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updatePaymentStatus = async (req, res, next) => {
+  try {
+    const result = await orderService.updatePaymentStatus(
+      req.params.orderId,
+      req.body.paymentStatus,
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
