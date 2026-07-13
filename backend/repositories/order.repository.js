@@ -24,18 +24,3 @@ export const update = (id, data) => {
     runValidators: true,
   });
 };
-export const updatePaymentStatus = async (req, res, next) => {
-  try {
-    const result = await orderService.updatePaymentStatus(
-      req.params.orderId,
-      req.body.paymentStatus,
-    );
-
-    res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
