@@ -64,6 +64,20 @@ export const getSingleOrder = async (req, res, next) => {
     next(error);
   }
 };
+export const getSellerOrders = async (req, res, next) => {
+  try {
+    const sellerId = req.user.id;
+
+    const result = await orderService.getSellerOrders(sellerId, req.query);
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const sellerUpdateOrderStatus = async (req, res, next) => {
   try {
     const result = await orderService.sellerUpdateOrderStatus(

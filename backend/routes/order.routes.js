@@ -25,12 +25,20 @@ router.patch("/:orderId/cancel", protect, orderController.cancelOrder);
    Seller Routes
 =========================== */
 
-// Get seller's orders
+// Seller: View all their orders
 router.get(
   "/seller/orders",
   protect,
   authorize("SELLER"),
   orderController.getSellerOrders,
+);
+
+// Seller: Update order status
+router.patch(
+  "/seller/orders/:orderId/status",
+  protect,
+  authorize("SELLER"),
+  orderController.sellerUpdateOrderStatus,
 );
 
 /* ===========================

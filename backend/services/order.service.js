@@ -12,6 +12,7 @@ export const createOrder = async (userId, data) => {
   }
 
   // Get user's cart
+  console.log("User ID:", userId);
   const cartItems = await cartRepository.findByUser(userId);
 
   if (!cartItems.length) {
@@ -77,7 +78,7 @@ export const createOrder = async (userId, data) => {
   }
 
   // Clear user's cart
-  await cartRepository.clearCart(userId);
+  await cartRepository.clearCart({ user: userId });
 
   return {
     message: "Order placed successfully.",

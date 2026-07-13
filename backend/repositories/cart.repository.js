@@ -26,7 +26,10 @@ export const countCart = (filter = {}) => {
 };
 
 export const findOne = (filter) => {
-  return Cart.findOne(filter);
+  return Cart.findOne(filter).populate("product");
+};
+export const findByUser = (userId) => {
+  return Cart.find({ user: userId }).populate("product");
 };
 export const clearCart = (filter) => {
   return Cart.deleteMany(filter);
