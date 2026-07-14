@@ -115,12 +115,14 @@ const orderSchema = new mongoose.Schema(
     },
     transactionId: {
       type: String,
-      default: null,
+    },
+
+    pidx: {
+      type: String,
     },
 
     paidAt: {
       type: Date,
-      default: null,
     },
     totalAmount: {
       type: Number,

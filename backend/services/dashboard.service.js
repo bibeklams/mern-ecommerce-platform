@@ -75,6 +75,7 @@ export const getAdminDashboard = async () => {
 // =======================
 // Seller Dashboard
 // =======================
+
 export const getSellerDashboard = async (sellerId) => {
   const totalProducts = await productRepository.countProducts({
     seller: sellerId,
