@@ -12,7 +12,6 @@ export const createOrder = async (userId, data) => {
   }
 
   // Get user's cart
-  console.log("User ID:", userId);
   const cartItems = await cartRepository.findByUser(userId);
 
   if (!cartItems.length) {
@@ -59,26 +58,32 @@ export const createOrder = async (userId, data) => {
     items,
     shippingAddress: data.shippingAddress,
     paymentMethod: data.paymentMethod,
+    paymentStatus: "PENDING",
     totalAmount,
   });
 
-  // Reduce stock
-  for (const cartItem of cartItems) {
-    const product = await productRepository.findById(cartItem.product);
+  // Only for Cash on Delivery
+  if (data.paymentMethod === "COD") {
+    // Reduce stock
+    for (const cartItem of cartItems) {
+      const product = await productRepository.findById(cartItem.product);
 
-    const updatedData = {
-      stock: product.stock - cartItem.quantity,
-    };
+      const updatedData = {
+        stock: product.stock - cartItem.quantity,
+      };
 
-    if (updatedData.stock === 0) {
-      updatedData.status = "OUT_OF_STOCK"; // Use your actual status value
+      if (updatedData.stock === 0) {
+        updatedData.status = "OUT_OF_STOCK"; // Or whatever status your model uses
+      }
+
+      await productRepository.updateProduct(product._id, updatedData);
     }
 
-    await productRepository.updateProduct(product._id, updatedData);
+    // Clear cart
+    await cartRepository.clearCart({
+      user: userId,
+    });
   }
-
-  // Clear user's cart
-  await cartRepository.clearCart({ user: userId });
 
   return {
     message: "Order placed successfully.",
