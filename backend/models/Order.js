@@ -113,7 +113,15 @@ const orderSchema = new mongoose.Schema(
       default: "PENDING",
       index: true,
     },
+    transactionId: {
+      type: String,
+      default: null,
+    },
 
+    paidAt: {
+      type: Date,
+      default: null,
+    },
     totalAmount: {
       type: Number,
       required: true,
