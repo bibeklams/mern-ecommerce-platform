@@ -13,7 +13,7 @@ export const createUser = (userData) => {
   return User.create(userData);
 };
 export const findAllUsers = (filter = {}) => {
-  return User.find(filter);
+  return User.find(filter).sort({ name: 1 });
 };
 export const updateUser = (id, data) => {
   return User.findByIdAndUpdate(id, data, {
@@ -23,4 +23,7 @@ export const updateUser = (id, data) => {
 };
 export const deleteUnverifiedUser = (filter) => {
   return User.deleteOne(filter);
+};
+export const countUsers = (filter = {}) => {
+  return User.countDocuments(filter);
 };

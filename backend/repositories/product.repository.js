@@ -16,7 +16,14 @@ export const findOne = (filter) => {
 export const countProducts = (filter = {}) => {
   return Product.countDocuments(filter);
 };
-
+export const lowStockProducts = () => {
+  return Product.find({
+    stock: { $lte: 5 },
+  })
+    .select("name stock images")
+    .sort({ stock: 1 })
+    .limit(5);
+};
 export const findAllProducts = (filter = {}, options = {}) => {
   return Product.find(filter)
     .populate("category", "name")

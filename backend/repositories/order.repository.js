@@ -24,3 +24,80 @@ export const update = (id, data) => {
     runValidators: true,
   });
 };
+export const countOrders = (filter = {}) => {
+  return Order.countDocuments(filter);
+};
+export const recentOrders = () => {
+  return Order.find()
+    .populate("user", "name email")
+    .sort({ createdAt: -1 })
+    .limit(5);
+};
+export const totalRevenue = () => {
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: {
+          $sum: "$totalAmount",
+        },
+      },
+    },
+  ]);
+};
+export const getMonthlyRevenue = () => {
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: { $month: "$createdAt" },
+        },
+        revenue: {
+          $sum: "$totalAmount",
+        },
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+  ]);
+};
+
+export const sellerRevenue = (sellerId) => {
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+        "items.seller": sellerId,
+      },
+    },
+    {
+      $unwind: "$items",
+    },
+    {
+      $match: {
+        "items.seller": sellerId,
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: {
+          $sum: "$items.totalPrice",
+        },
+      },
+    },
+  ]);
+};
