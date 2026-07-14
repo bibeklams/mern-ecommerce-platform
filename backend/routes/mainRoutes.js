@@ -9,6 +9,7 @@ import orderRoutes from "./order.routes.js";
 import reviewRoutes from "./review.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import paymentRoutes from "./payment.routes.js";
+import notificationroutes from "./notification.routes.js";
 const router = express.Router();
 
 router.use("/auth", authRoutes);
@@ -21,5 +22,6 @@ router.use("/order", orderRoutes);
 router.use("/review", reviewRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/notifications", notificationroutes);
 
 export default router;

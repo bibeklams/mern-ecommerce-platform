@@ -3,6 +3,7 @@ import crypto from "crypto";
 import * as orderRepository from "../../repositories/order.repository.js";
 import * as productRepository from "../../repositories/product.repository.js";
 import * as cartRepository from "../../repositories/cart.repository.js";
+import * as notificationService from "./../notification.service.js";
 import { throwError } from "../../utils/errorHandler.js";
 
 export const initiateEsewaPayment = async (userId, orderId) => {
@@ -157,7 +158,12 @@ export const verifyEsewaPayment = async (userId, transactionUuid) => {
   await cartRepository.clearCart({
     user: userId,
   });
-
+  await notificationService.createNotification({
+    user: order.user,
+    title: "Payment Successful",
+    message: "Payment completed successfully.",
+    type: "PAYMENT",
+  });
   return {
     message: "Payment verified successfully.",
     orderId: order._id,

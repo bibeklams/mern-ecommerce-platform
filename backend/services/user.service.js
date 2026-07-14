@@ -1,4 +1,5 @@
 import * as userRepository from "../repositories/user.repository.js";
+import * as notificationService from "./notification.service.js";
 import { throwError } from "../utils/errorHandler.js";
 export const getAllUsers = async () => {
   const users = await userRepository.findAllUsers({
@@ -131,6 +132,13 @@ export const approveSeller = async (id) => {
     sellerStatus: "APPROVED",
   });
 
+  await notificationService.createNotification({
+    user: id,
+    title: "Seller Approved",
+    message: "Congratulations! Your seller account has been approved.",
+    type: "SELLER",
+  });
+
   return {
     message: "Seller application approved successfully.",
     user: updatedUser,
@@ -141,28 +149,36 @@ export const rejectSeller = async (id) => {
   const user = await userRepository.findUserById(id);
 
   if (!user) {
-    throwError("User not found", 404);
+    throwError("User not found.", 404);
   }
 
   if (user.sellerStatus === "NONE") {
-    throwError("User has not applied to become a seller", 400);
+    throwError("User has not applied to become a seller.", 400);
   }
 
   if (user.sellerStatus === "REJECTED") {
-    throwError("Seller application is already rejected", 400);
+    throwError("Seller application is already rejected.", 400);
   }
 
   if (user.sellerStatus === "APPROVED") {
-    throwError("Seller application has already been approved", 400);
+    throwError("Seller application has already been approved.", 400);
   }
 
   if (user.sellerStatus !== "PENDING") {
-    throwError("Seller application is not pending", 400);
+    throwError("Seller application is not pending.", 400);
   }
 
   const updatedUser = await userRepository.updateUser(id, {
     role: "USER",
     sellerStatus: "REJECTED",
+  });
+
+  await notificationService.createNotification({
+    user: updatedUser._id,
+    title: "Seller Application Rejected",
+    message:
+      "Unfortunately, your seller application has been rejected. Please contact support or apply again later if applicable.",
+    type: "SELLER",
   });
 
   return {

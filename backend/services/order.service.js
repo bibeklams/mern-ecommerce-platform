@@ -2,6 +2,7 @@ import * as orderRepository from "../repositories/order.repository.js";
 import * as cartRepository from "../repositories/cart.repository.js";
 import * as productRepository from "../repositories/product.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
+import * as notificationService from "./notification.service.js";
 import { throwError } from "../utils/errorHandler.js";
 
 export const createOrder = async (userId, data) => {
@@ -61,7 +62,12 @@ export const createOrder = async (userId, data) => {
     paymentStatus: "PENDING",
     totalAmount,
   });
-
+  await notificationService.createNotification({
+    user: userId,
+    title: "Order Placed",
+    message: "Your order has been placed successfully.",
+    type: "ORDER",
+  });
   // Only for Cash on Delivery
   if (data.paymentMethod === "COD") {
     // Reduce stock
@@ -192,7 +198,14 @@ export const cancelOrder = async (userId, orderId) => {
   const cancelledOrder = await orderRepository.update(orderId, {
     orderStatus: "CANCELLED",
   });
-
+  for (const item of order.items) {
+    await notificationService.createNotification({
+      user: item.seller,
+      title: "Order Cancelled",
+      message: `Order #${order._id} has been cancelled by the customer.`,
+      type: "ORDER",
+    });
+  }
   return {
     message: "Order cancelled successfully.",
     order: cancelledOrder,
@@ -227,12 +240,14 @@ export const sellerUpdateOrderStatus = async (
   orderId,
   orderStatus,
 ) => {
+  // Find order
   const order = await orderRepository.findById(orderId);
 
   if (!order) {
     throwError("Order not found.", 404);
   }
 
+  // Check seller owns at least one item
   const sellerItem = order.items.find(
     (item) => item.seller.toString() === sellerId,
   );
@@ -241,12 +256,45 @@ export const sellerUpdateOrderStatus = async (
     throwError("Unauthorized.", 403);
   }
 
-  if (orderStatus !== "PROCESSING" && orderStatus !== "SHIPPED") {
+  // Allowed statuses
+  const allowedStatuses = ["PROCESSING", "SHIPPED"];
+
+  if (!allowedStatuses.includes(orderStatus)) {
     throwError("Invalid order status.", 400);
   }
 
+  // Prevent updating to the same status
+  if (order.orderStatus === orderStatus) {
+    throwError(`Order is already ${orderStatus}.`, 400);
+  }
+
+  // Update order
   const updatedOrder = await orderRepository.update(orderId, {
     orderStatus,
+  });
+
+  // Notification message
+  let title = "";
+  let message = "";
+
+  switch (orderStatus) {
+    case "PROCESSING":
+      title = "Order Processing";
+      message = `Your order #${order._id} is now being processed.`;
+      break;
+
+    case "SHIPPED":
+      title = "Order Shipped";
+      message = `Your order #${order._id} has been shipped.`;
+      break;
+  }
+
+  // Notify user
+  await notificationService.createNotification({
+    user: order.user,
+    title,
+    message,
+    type: "ORDER",
   });
 
   return {
