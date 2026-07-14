@@ -101,3 +101,125 @@ export const sellerRevenue = (sellerId) => {
     },
   ]);
 };
+export const getDailyRevenue = () => {
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+
+  tomorrow.setDate(today.getDate() + 1);
+
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+        createdAt: {
+          $gte: today,
+          $lt: tomorrow,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: {
+          $sum: "$totalAmount",
+        },
+      },
+    },
+  ]);
+};
+export const getWeeklyRevenue = () => {
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dayOfWeek: "$createdAt",
+        },
+        revenue: {
+          $sum: "$totalAmount",
+        },
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ]);
+};
+export const getSellerDailyRevenue = (sellerId) => {
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+
+  tomorrow.setDate(today.getDate() + 1);
+
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+      },
+    },
+    {
+      $unwind: "$items",
+    },
+    {
+      $match: {
+        "items.seller": sellerId,
+        createdAt: {
+          $gte: today,
+          $lt: tomorrow,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: {
+          $sum: "$items.totalPrice",
+        },
+      },
+    },
+  ]);
+};
+export const getSellerWeeklyRevenue = (sellerId) => {
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+      },
+    },
+    {
+      $unwind: "$items",
+    },
+    {
+      $match: {
+        "items.seller": sellerId,
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dayOfWeek: "$createdAt",
+        },
+        revenue: {
+          $sum: "$items.totalPrice",
+        },
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ]);
+};

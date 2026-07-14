@@ -2,6 +2,9 @@ import * as userRepository from "../repositories/user.repository.js";
 import * as productRepository from "../repositories/product.repository.js";
 import * as orderRepository from "../repositories/order.repository.js";
 
+// =======================
+// Admin Dashboard
+// =======================
 export const getAdminDashboard = async () => {
   const totalUsers = await userRepository.countUsers({
     role: "USER",
@@ -19,6 +22,8 @@ export const getAdminDashboard = async () => {
 
   const totalProducts = await productRepository.countProducts();
 
+  const lowStockProducts = await productRepository.lowStockProducts();
+
   const totalOrders = await orderRepository.countOrders();
 
   const totalPendingOrders = await orderRepository.countOrders({
@@ -34,14 +39,16 @@ export const getAdminDashboard = async () => {
   });
 
   const revenueResult = await orderRepository.totalRevenue();
-
   const totalRevenue = revenueResult[0]?.totalRevenue || 0;
+
+  const dailyRevenueResult = await orderRepository.getDailyRevenue();
+  const dailyRevenue = dailyRevenueResult[0]?.totalRevenue || 0;
+
+  const weeklyRevenue = await orderRepository.getWeeklyRevenue();
 
   const monthlyRevenue = await orderRepository.getMonthlyRevenue();
 
   const recentOrders = await orderRepository.recentOrders();
-
-  const lowStockProducts = await productRepository.lowStockProducts();
 
   return {
     totalUsers,
@@ -57,11 +64,17 @@ export const getAdminDashboard = async () => {
     totalDeliveredOrders,
 
     totalRevenue,
+    dailyRevenue,
+    weeklyRevenue,
     monthlyRevenue,
 
     recentOrders,
   };
 };
+
+// =======================
+// Seller Dashboard
+// =======================
 export const getSellerDashboard = async (sellerId) => {
   const totalProducts = await productRepository.countProducts({
     seller: sellerId,
@@ -72,9 +85,15 @@ export const getSellerDashboard = async (sellerId) => {
     status: "ACTIVE",
   });
 
+  // Better than checking status: "OUT_OF_STOCK"
   const outOfStockProducts = await productRepository.countProducts({
     seller: sellerId,
-    status: "OUT_OF_STOCK",
+    stock: 0,
+  });
+
+  const lowStockProducts = await productRepository.lowStockProducts({
+    seller: sellerId,
+    stock: { $lte: 5 },
   });
 
   const totalOrders = await orderRepository.countOrders({
@@ -97,18 +116,20 @@ export const getSellerDashboard = async (sellerId) => {
   });
 
   const revenueResult = await orderRepository.sellerRevenue(sellerId);
-
   const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
-  const lowStockProducts = await productRepository.lowStockProducts({
-    seller: sellerId,
-    stock: { $lte: 5 },
-  });
+  const dailyRevenueResult =
+    await orderRepository.getSellerDailyRevenue(sellerId);
+
+  const dailyRevenue = dailyRevenueResult[0]?.totalRevenue || 0;
+
+  const weeklyRevenue = await orderRepository.getSellerWeeklyRevenue(sellerId);
 
   return {
     totalProducts,
     activeProducts,
     outOfStockProducts,
+    lowStockProducts,
 
     totalOrders,
     pendingOrders,
@@ -116,7 +137,7 @@ export const getSellerDashboard = async (sellerId) => {
     cancelledOrders,
 
     totalRevenue,
-
-    lowStockProducts,
+    dailyRevenue,
+    weeklyRevenue,
   };
 };
