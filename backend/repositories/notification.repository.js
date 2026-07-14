@@ -1,7 +1,7 @@
 import Notification from "../models/Notification.js";
 
-export const createNotification = (filter) => {
-  return Notification.create(filter);
+export const createNotification = (data) => {
+  return Notification.create(data);
 };
 export const findNotificationById = (id) => {
   return Notification.findById(id);
