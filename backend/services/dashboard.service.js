@@ -1,7 +1,6 @@
 import * as userRepository from "../repositories/user.repository.js";
 import * as productRepository from "../repositories/product.repository.js";
 import * as orderRepository from "../repositories/order.repository.js";
-import * as dashboardRepository from "../repositories/dashboard.repository.js";
 
 export const getAdminDashboard = async () => {
   const totalUsers = await userRepository.countUsers({
@@ -34,11 +33,11 @@ export const getAdminDashboard = async () => {
     orderStatus: "DELIVERED",
   });
 
-  const revenueResult = await dashboardRepository.totalRevenue();
+  const revenueResult = await orderRepository.totalRevenue();
 
   const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
-  const monthlyRevenue = await dashboardRepository.getMonthlyRevenue();
+  const monthlyRevenue = await orderRepository.getMonthlyRevenue();
 
   const recentOrders = await orderRepository.recentOrders();
 
@@ -97,7 +96,7 @@ export const getSellerDashboard = async (sellerId) => {
     orderStatus: "CANCELLED",
   });
 
-  const revenueResult = await dashboardRepository.sellerRevenue(sellerId);
+  const revenueResult = await orderRepository.sellerRevenue(sellerId);
 
   const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
