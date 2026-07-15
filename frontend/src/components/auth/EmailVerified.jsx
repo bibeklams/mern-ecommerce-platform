@@ -1,7 +1,7 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
 import { useNavigate, useLocation } from "react-router-dom";
-import { verifiedEmail } from "../../services/authServices";
+import { verifiedEmail } from "../../services/auth.service";
 import { FaShieldAlt } from "react-icons/fa";
 
 function EmailVerified() {

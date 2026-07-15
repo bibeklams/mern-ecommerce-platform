@@ -1,7 +1,7 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
 import { useNavigate, useLocation } from "react-router-dom";
-import { verifyResetOtp } from "../../services/authServices";
+import { verifyResetOtp } from "../../services/auth.service";
 
 function VerifyOtp() {
   const location = useLocation();

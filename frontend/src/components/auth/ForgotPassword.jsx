@@ -1,7 +1,7 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
 import { useNavigate } from "react-router-dom";
-import { forgotPassword } from "../../services/authServices";
+import { forgotPassword } from "../../services/auth.service";
 
 function ForgotPassword() {
   const navigate = useNavigate();

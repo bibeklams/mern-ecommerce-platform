@@ -1,6 +1,6 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
-import { register } from "../../services/authServices";
+import { register } from "../../services/auth.service";
 import { useNavigate, Link } from "react-router-dom";
 import {
   FaUser,

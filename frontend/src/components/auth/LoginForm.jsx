@@ -1,8 +1,8 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
 import { useNavigate, Link } from "react-router-dom";
-import { login, googleLogin } from "../../services/authServices";
-import { loginSuccess } from "../../redux/authSlice";
+import { login, googleLogin } from "../../services/auth.service";
+import { loginSuccess } from "../../redux/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { FaEnvelope, FaLock, FaShoppingBag } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
