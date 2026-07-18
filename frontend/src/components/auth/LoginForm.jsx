@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { FaEnvelope, FaLock, FaShoppingBag } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "motion/react";
 
 import { loginUser, googleLoginUser } from "../../redux/thunks/authThunk";
 
@@ -14,6 +15,46 @@ const loginSchema = Yup.object({
   password: Yup.string().required("Password is required"),
 });
 
+// Shared field wrapper — matches the one used on the register page,
+// dark glass surface with an animated error message underneath.
+const FormField = ({ icon, name, type, placeholder }) => (
+  <div>
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+        {icon}
+      </span>
+
+      <Field
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        className="
+        w-full pl-10 pr-4 py-2.5
+        rounded-lg
+        bg-white/5
+        border border-white/10
+        text-sm text-white placeholder:text-slate-500
+        outline-none
+        focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/20
+        transition-colors duration-200
+        "
+      />
+    </div>
+
+    <ErrorMessage name={name}>
+      {(msg) => (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xs text-rose-400 mt-1.5 pl-1"
+        >
+          {msg}
+        </motion.p>
+      )}
+    </ErrorMessage>
+  </div>
+);
+
 function LoginForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -21,18 +62,17 @@ function LoginForm() {
   const { loading } = useSelector((state) => state.auth);
 
   const redirectUser = (role) => {
-    switch (role) {
-      case "ADMIN":
-        navigate("/admin");
-        break;
+    // switch (role) {
+    //   case "ADMIN":
+    //     navigate("/admin/dashboard");
+    //     break;
 
-      case "SELLER":
-        navigate("/seller");
-        break;
+    //   case "SELLER":
+    //     navigate("/seller/dashboard");
+    //     break;
 
-      default:
-        navigate("/home");
-    }
+    //   default:
+    navigate("/home");
   };
 
   // Normal Login
@@ -71,19 +111,60 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+    <div
+      className="
+      min-h-screen flex items-center justify-center
+      bg-[#0B1120]
+      px-4
+      relative
+      overflow-hidden
+      "
+    >
+      {/* Ambient gradient glow — same accent language as navbar/register */}
+      <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-indigo-600/20 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-cyan-500/10 blur-[100px]" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="
+        w-full max-w-md
+        bg-white/[0.04]
+        backdrop-blur-xl
+        shadow-2xl shadow-black/40
+        rounded-2xl
+        p-8
+        border border-white/[0.08]
+        relative
+        "
+      >
         {/* Header */}
         <div className="mb-8 flex flex-col items-center">
-          <div className="rounded-full bg-blue-600 p-4">
-            <FaShoppingBag className="text-3xl text-white" />
-          </div>
+          <motion.div
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 18,
+              delay: 0.1,
+            }}
+            className="
+            h-14 w-14 flex items-center justify-center
+            rounded-full
+            bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400
+            shadow-lg shadow-indigo-500/30
+            "
+          >
+            <FaShoppingBag className="text-xl text-white" />
+          </motion.div>
 
-          <h1 className="mt-4 text-3xl font-bold text-gray-800">
-            Welcome to ShopVerse
+          <h1 className="mt-4 text-2xl font-bold text-white tracking-tight">
+            Welcome back
           </h1>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-400">
             Login to continue shopping
           </p>
         </div>
@@ -96,102 +177,118 @@ function LoginForm() {
           validationSchema={loginSchema}
           onSubmit={handleSubmit}
         >
-          <Form className="space-y-5">
-            {/* Email */}
-            <div>
-              <div className="relative">
-                <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
+          <Form className="space-y-4">
+            <FormField
+              icon={<FaEnvelope size={14} />}
+              type="email"
+              name="email"
+              placeholder="Email address"
+            />
 
-                <Field
-                  type="email"
-                  name="email"
-                  placeholder="Email address"
-                  className="w-full rounded-lg border py-2 pl-10 pr-4 outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <ErrorMessage
-                name="email"
-                component="p"
-                className="mt-1 text-sm text-red-500"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <div className="relative">
-                <FaLock className="absolute left-3 top-3 text-gray-400" />
-
-                <Field
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  className="w-full rounded-lg border py-2 pl-10 pr-4 outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <ErrorMessage
-                name="password"
-                component="p"
-                className="mt-1 text-sm text-red-500"
-              />
-            </div>
+            <FormField
+              icon={<FaLock size={14} />}
+              type="password"
+              name="password"
+              placeholder="Password"
+            />
 
             {/* Forgot Password */}
-
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => navigate("/forgot-password")}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
               >
-                Forgot Password?
+                Forgot password?
               </button>
             </div>
 
             {/* Login Button */}
-
-            <button
+            <motion.button
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.98 }}
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:bg-blue-400"
+              className="
+              w-full py-2.5
+              rounded-lg
+              bg-gradient-to-r from-indigo-500 to-violet-500
+              disabled:from-slate-700 disabled:to-slate-700
+              disabled:cursor-not-allowed
+              text-white text-sm font-semibold
+              shadow-lg shadow-indigo-500/25
+              flex items-center justify-center gap-2
+              transition-shadow duration-200
+              "
             >
-              {loading ? "Logging in..." : "Login"}
-            </button>
+              <AnimatePresence mode="wait">
+                {loading ? (
+                  <motion.span
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-2"
+                  >
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 0.8,
+                        ease: "linear",
+                      }}
+                      className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white"
+                    />
+                    Logging in...
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="idle"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Login
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
 
             {/* Divider */}
-
-            <div className="flex items-center">
-              <div className="h-px flex-1 bg-gray-300"></div>
-
-              <span className="mx-3 text-sm text-gray-500">OR</span>
-
-              <div className="h-px flex-1 bg-gray-300"></div>
+            <div className="flex items-center pt-1">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="mx-3 text-xs uppercase tracking-wider text-slate-500">
+                Or
+              </span>
+              <div className="h-px flex-1 bg-white/10" />
             </div>
 
             {/* Google Login */}
-
-            <div className="flex justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex justify-center rounded-lg overflow-hidden [color-scheme:light]"
+            >
               <GoogleLogin
                 onSuccess={handleGoogleLogin}
                 onError={() => alert("Google login failed")}
               />
-            </div>
+            </motion.div>
           </Form>
         </Formik>
 
         {/* Register */}
-
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-slate-400">
           Don't have an account?{" "}
           <Link
             to="/register"
-            className="font-semibold text-blue-600 hover:underline"
+            className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             Register
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
