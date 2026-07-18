@@ -1,16 +1,26 @@
 import React from "react";
-import { Formik, Field, Form } from "formik";
+import { Formik, Field, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { forgotPassword } from "../../services/auth.service";
+import { useDispatch, useSelector } from "react-redux";
+
+import { forgotPasswordUser } from "../../redux/thunks/authThunk";
+
+const forgotPasswordSchema = Yup.object({
+  email: Yup.string().email("Invalid email").required("Email is required"),
+});
 
 function ForgotPassword() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { loading } = useSelector((state) => state.auth);
 
   const handleSubmit = async (values, { resetForm }) => {
-    try {
-      const data = await forgotPassword(values);
+    const resultAction = await dispatch(forgotPasswordUser(values));
 
-      alert(data.message);
+    if (forgotPasswordUser.fulfilled.match(resultAction)) {
+      alert(resultAction.payload.message || "OTP sent successfully");
 
       resetForm();
 
@@ -19,8 +29,8 @@ function ForgotPassword() {
           email: values.email,
         },
       });
-    } catch (error) {
-      alert(error.response?.data?.message || "Something went wrong");
+    } else {
+      alert(resultAction.payload || "Something went wrong");
     }
   };
 
@@ -37,6 +47,7 @@ function ForgotPassword() {
           initialValues={{
             email: "",
           }}
+          validationSchema={forgotPasswordSchema}
           onSubmit={handleSubmit}
         >
           <Form className="space-y-5">
@@ -49,21 +60,28 @@ function ForgotPassword() {
                 name="email"
                 type="email"
                 placeholder="example@gmail.com"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <ErrorMessage
+                name="email"
+                component="p"
+                className="text-sm text-red-500 mt-1"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-blue-400"
             >
-              Send OTP
+              {loading ? "Sending..." : "Send OTP"}
             </button>
 
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="w-full border border-gray-300 py-3 rounded-lg hover:bg-gray-100 transition duration-200"
+              className="w-full border border-gray-300 py-3 rounded-lg hover:bg-gray-100"
             >
               Back to Login
             </button>

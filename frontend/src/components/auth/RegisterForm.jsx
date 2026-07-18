@@ -1,7 +1,9 @@
 import React from "react";
-import { Formik, Field, Form } from "formik";
-import { register } from "../../services/auth.service";
+import { Formik, Field, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
 import {
   FaUser,
   FaEnvelope,
@@ -10,14 +12,34 @@ import {
   FaShoppingBag,
 } from "react-icons/fa";
 
+import { registerUser } from "../../redux/thunks/authThunk";
+
+const registerSchema = Yup.object({
+  name: Yup.string()
+    .min(3, "Name must be at least 3 characters")
+    .required("Name is required"),
+
+  email: Yup.string().email("Invalid email").required("Email is required"),
+
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
+
 function RegisterForm() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { loading } = useSelector((state) => state.auth);
 
   const handleSubmit = async (values, { resetForm }) => {
-    try {
-      const data = await register(values);
+    const resultAction = await dispatch(registerUser(values));
+
+    if (registerUser.fulfilled.match(resultAction)) {
+      const data = resultAction.payload;
 
       alert(data.message);
+
       resetForm();
 
       navigate("/verify-email", {
@@ -25,8 +47,8 @@ function RegisterForm() {
           email: values.email,
         },
       });
-    } catch (error) {
-      alert(error.response?.data?.message || "Something went wrong");
+    } else {
+      alert(resultAction.payload || "Registration failed");
     }
   };
 
@@ -34,6 +56,7 @@ function RegisterForm() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border">
         {/* Header */}
+
         <div className="flex flex-col items-center mb-6">
           <div className="bg-blue-600 p-4 rounded-full shadow">
             <FaShoppingBag className="text-white text-3xl" />
@@ -48,61 +71,95 @@ function RegisterForm() {
           </p>
         </div>
 
-        {/* Form */}
         <Formik
           initialValues={{
             name: "",
             email: "",
             password: "",
           }}
+          validationSchema={registerSchema}
           onSubmit={handleSubmit}
         >
           <Form className="space-y-4">
             {/* Name */}
-            <div className="relative">
-              <FaUser className="absolute left-3 top-3 text-gray-400" />
-              <Field
+
+            <div>
+              <div className="relative">
+                <FaUser className="absolute left-3 top-3 text-gray-400" />
+
+                <Field
+                  name="name"
+                  type="text"
+                  placeholder="Full name"
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <ErrorMessage
                 name="name"
-                type="text"
-                placeholder="Full name"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                component="p"
+                className="text-sm text-red-500 mt-1"
               />
             </div>
 
             {/* Email */}
-            <div className="relative">
-              <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
-              <Field
+
+            <div>
+              <div className="relative">
+                <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
+
+                <Field
+                  name="email"
+                  type="email"
+                  placeholder="Email address"
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <ErrorMessage
                 name="email"
-                type="email"
-                placeholder="Email address"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                component="p"
+                className="text-sm text-red-500 mt-1"
               />
             </div>
 
             {/* Password */}
-            <div className="relative">
-              <FaLock className="absolute left-3 top-3 text-gray-400" />
-              <Field
+
+            <div>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-3 text-gray-400" />
+
+                <Field
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <ErrorMessage
                 name="password"
-                type="password"
-                placeholder="Password"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                component="p"
+                className="text-sm text-red-500 mt-1"
               />
             </div>
 
             {/* Button */}
+
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2 rounded-lg font-semibold flex items-center justify-center gap-2"
             >
               <FaUserPlus />
-              Create Account
+
+              {loading ? "Creating..." : "Create Account"}
             </button>
           </Form>
         </Formik>
 
         {/* Footer */}
+
         <p className="text-center text-sm mt-6 text-gray-600">
           Already have an account?{" "}
           <Link

@@ -70,7 +70,7 @@ export const getProfile = createAsyncThunk(
 );
 
 // Forgot Password
-export const forgotPassword = createAsyncThunk(
+export const forgotPasswordUser = createAsyncThunk(
   "auth/forgotPassword",
   async (data, { rejectWithValue }) => {
     try {
@@ -84,7 +84,7 @@ export const forgotPassword = createAsyncThunk(
 );
 
 // Verify Reset OTP
-export const verifyResetOtp = createAsyncThunk(
+export const verifyResetOtpUser = createAsyncThunk(
   "auth/verifyResetOtp",
   async (data, { rejectWithValue }) => {
     try {
@@ -98,7 +98,7 @@ export const verifyResetOtp = createAsyncThunk(
 );
 
 // Reset Password
-export const resetPassword = createAsyncThunk(
+export const resetPasswordUser = createAsyncThunk(
   "auth/resetPassword",
   async (data, { rejectWithValue }) => {
     try {
