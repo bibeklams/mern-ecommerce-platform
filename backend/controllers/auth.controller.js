@@ -4,11 +4,11 @@ export const register = async (req, res, next) => {
   try {
     console.log(req.body);
 
-    const user = await authService.register(req.body);
+    const result = await authService.register(req.body);
 
     res.status(201).json({
       success: true,
-      user,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -20,8 +20,7 @@ export const verifyEmail = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: result.message,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -33,8 +32,7 @@ export const forgotPassword = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: result.message,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -49,8 +47,7 @@ export const verifyResetOtp = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: result.message,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -67,8 +64,7 @@ export const resetPassword = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: result.message,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -128,8 +124,7 @@ export const googleLogin = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user: result.user,
-      accessToken: result.accessToken,
+      ...result,
     });
   } catch (error) {
     next(error);
