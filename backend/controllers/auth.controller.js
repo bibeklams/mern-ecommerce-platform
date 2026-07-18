@@ -169,7 +169,18 @@ export const logout = async (req, res, next) => {
     next(error);
   }
 };
+export const profile = async (req, res, next) => {
+  try {
+    const user = req.user;
 
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const logoutFromAllDevice = async (req, res, next) => {
   try {
     await authService.logoutFromAllDevice(req.user.userId);

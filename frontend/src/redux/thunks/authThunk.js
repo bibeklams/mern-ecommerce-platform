@@ -68,7 +68,16 @@ export const getProfile = createAsyncThunk(
     }
   },
 );
-
+export const refreshUser = createAsyncThunk(
+  "auth/refreshUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await authService.refreshToken();
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Refresh failed");
+    }
+  },
+);
 // Forgot Password
 export const forgotPasswordUser = createAsyncThunk(
   "auth/forgotPassword",

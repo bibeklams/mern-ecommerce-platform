@@ -13,8 +13,8 @@ router.post("/verify-email", authController.verifyEmail);
 router.post("/login", authController.login);
 router.post("/google-login", authController.googleLogin);
 // Refresh token (NO protect)
-router.post("/refreshToken", authController.refreshToken);
-
+router.post("/refresh-token", authController.refreshToken);
+router.get("/profile", protect, authController.profile);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/verify-reset-otp", authController.verifyResetOtp);
 router.patch("/reset-password", authController.resetPassword);
