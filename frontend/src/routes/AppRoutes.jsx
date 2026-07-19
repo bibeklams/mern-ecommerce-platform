@@ -19,9 +19,9 @@ import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
 // User Pages
 // ===================
 
-import HomePage from "../pages/user/Home";
-import ProductsPage from "../pages/user/Products";
-import ProductDetailsPage from "../pages/user/ProductDetails";
+import HomePage from "../pages/public/Home";
+import ProductsPage from "../pages/public/Products";
+import ProductDetailsPage from "../pages/public/ProductDetails";
 import CartPage from "../pages/user/Cart";
 import WishlistPage from "../pages/user/Wishlist";
 import CheckoutPage from "../pages/user/Checkout";
@@ -65,6 +65,10 @@ function AppRoutes() {
       {/* ================= Main Website ================= */}
 
       <Route element={<MainLayout />}>
+        {/* Public */}
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:id" element={<ProductDetailsPage />} />
         {/* Auth */}
 
         <Route path="/login" element={<LoginPage />} />
@@ -76,9 +80,6 @@ function AppRoutes() {
 
         {/* User */}
 
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/products/:id" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />

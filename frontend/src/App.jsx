@@ -23,7 +23,11 @@ function App() {
     loadUser();
   }, [dispatch]);
 
-  return <AppRoutes />;
+  return (
+    <>
+      <AppRoutes />
+    </>
+  );
 }
 
 export default App;

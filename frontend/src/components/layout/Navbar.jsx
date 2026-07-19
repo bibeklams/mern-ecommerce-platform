@@ -1,22 +1,20 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "motion/react";
 
 import {
-  FaHome,
-  FaBoxOpen,
+  FaSearch,
   FaHeart,
   FaShoppingCart,
-  FaClipboardList,
   FaBell,
+  FaChevronDown,
+  FaClipboardList,
   FaUser,
-  FaSignInAlt,
-  FaUserPlus,
+  FaChartLine,
   FaSignOutAlt,
   FaBars,
   FaTimes,
-  FaChartLine,
 } from "react-icons/fa";
 
 import { logoutUser } from "../../redux/thunks/authThunk";
@@ -26,215 +24,243 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const isSeller = user?.role === "SELLER";
+
+  // Optional chaining keeps this safe even if these slices don't exist yet.
+  const cartCount = useSelector((state) => state.cart?.items?.length) || 0;
+  const wishlistCount =
+    useSelector((state) => state.wishlist?.items?.length) || 0;
+
   const isAdmin = user?.role === "ADMIN";
-  const canAccessDashboard = isSeller || isAdmin;
+  const isSeller = user?.role === "SELLER";
+  const canAccessDashboard = isAdmin || isSeller;
   const dashboardPath = isAdmin ? "/admin/dashboard" : "/seller/dashboard";
+
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     try {
+      setProfileOpen(false);
       await dispatch(logoutUser()).unwrap();
-
       navigate("/login");
     } catch (error) {
       console.log(error);
     }
   };
 
-  // Shared link styling — the little gradient dot + underline glow on active
-  // is the signature moment this navbar is built around.
-  const navClass = ({ isActive }) =>
-    `
-    relative flex items-center gap-2
-    px-1 py-1
-    text-sm font-medium tracking-wide
-    transition-colors duration-300
-    ${isActive ? "text-white" : "text-slate-400 hover:text-white"}
-    `;
+  const navLinkClass = ({ isActive }) =>
+    `text-sm font-medium transition-colors ${
+      isActive ? "text-gray-900" : "text-gray-500 hover:text-gray-900"
+    }`;
 
-  const mobileNavClass = ({ isActive }) =>
-    `
-    flex items-center gap-3
-    px-4 py-3 rounded-xl
-    text-base font-medium
-    transition-colors duration-200
-    ${
-      isActive
-        ? "bg-gradient-to-r from-indigo-500/20 to-cyan-400/10 text-white"
-        : "text-slate-400 hover:text-white hover:bg-white/5"
-    }
-    `;
+  const mobileLinkClass = ({ isActive }) =>
+    `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+      isActive ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-gray-50"
+    }`;
 
-  const NavItem = ({ to, icon, label, showLabel = true }) => (
-    <NavLink to={to} className={navClass}>
-      {({ isActive }) => (
-        <>
-          <span className="text-[15px]">{icon}</span>
-          {showLabel && <span>{label}</span>}
-          {isActive && (
-            <motion.span
-              layoutId="nav-underline"
-              className="absolute -bottom-[18px] left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
-            />
-          )}
-        </>
+  const initials = (user?.name || "")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  const IconBadge = ({ to, icon, count, label }) => (
+    <NavLink
+      to={to}
+      aria-label={label}
+      className="relative flex h-9 w-9 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+    >
+      {icon}
+      {count > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-semibold leading-none text-white">
+          {count > 9 ? "9+" : count}
+        </span>
       )}
     </NavLink>
   );
 
   return (
-    <header
-      className="
-      sticky top-0 z-50
-      bg-[#0B1120]/80
-      backdrop-blur-xl
-      border-b border-white/[0.06]
-      "
-    >
-      <div
-        className="
-        max-w-7xl mx-auto
-        px-5 sm:px-6 lg:px-8 py-4
-        flex items-center justify-between
-        "
-      >
-        {/* Logo */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          transition={{ type: "spring", stiffness: 300 }}
-          className="flex items-center gap-2"
-        >
-          <NavLink to="/" className="flex items-center gap-2">
-            <span
-              className="
-              flex h-8 w-8 items-center justify-center
-              rounded-lg
-              bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400
-              text-white text-sm font-black
-              shadow-lg shadow-indigo-500/30
-              "
-            >
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
+          {/* Logo */}
+          <NavLink to="/" className="flex items-center gap-2 shrink-0">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 text-white text-sm font-bold">
               S
             </span>
-            <span
-              className="
-              text-xl font-bold tracking-tight
-              bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent
-              "
-            >
+            <span className="text-lg font-bold text-gray-900 tracking-tight hidden sm:block">
               ShopVerse
             </span>
           </NavLink>
-        </motion.div>
 
-        {/* Welcome (desktop only) */}
-        {isAuthenticated && (
-          <motion.p
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="hidden xl:block text-sm text-slate-400"
-          >
-            Welcome back,
-            <span className="ml-1 font-semibold text-white">{user?.name}</span>
-          </motion.p>
-        )}
-
-        {/* Desktop navigation */}
-        <nav className="hidden lg:flex items-center gap-8">
-          <NavItem to="/" icon={<FaHome />} label="Home" />
-          <NavItem to="/products" icon={<FaBoxOpen />} label="Products" />
-
-          {isAuthenticated && (
-            <>
-              <NavItem to="/wishlist" icon={<FaHeart />} label="Wishlist" />
-              <NavItem to="/cart" icon={<FaShoppingCart />} label="Cart" />
-              <NavItem to="/orders" icon={<FaClipboardList />} label="Orders" />
-              <NavItem
-                to="/notifications"
-                icon={<FaBell />}
-                showLabel={false}
+          {/* Search (desktop) */}
+          <div className="hidden md:flex flex-1 max-w-md">
+            <div className="relative w-full">
+              <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-900/5 transition-all"
               />
-              <NavItem to="/profile" icon={<FaUser />} label="Profile" />
-            </>
-          )}
+            </div>
+          </div>
 
-          {canAccessDashboard && (
-            <NavItem
-              to={dashboardPath}
-              icon={<FaChartLine />}
-              label="Dashboard"
-            />
-          )}
-        </nav>
+          {/* Center links (desktop) */}
+          <nav className="hidden lg:flex items-center gap-6">
+            <NavLink to="/home" className={navLinkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/products" className={navLinkClass}>
+              Products
+            </NavLink>
+            {canAccessDashboard && (
+              <NavLink to={dashboardPath} className={navLinkClass}>
+                Dashboard
+              </NavLink>
+            )}
+          </nav>
 
-        {/* Auth / actions (desktop) */}
-        <div className="hidden lg:flex items-center gap-4">
-          {isAuthenticated ? (
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={handleLogout}
-              className="
-              flex items-center gap-2
-              px-4 py-2 rounded-lg
-              bg-white/5 hover:bg-red-500/10
-              text-slate-300 hover:text-red-400
-              border border-white/10 hover:border-red-500/30
-              transition-colors duration-200
-              "
-            >
-              <FaSignOutAlt />
-              Logout
-            </motion.button>
-          ) : (
-            <>
-              <motion.div whileHover={{ y: -2 }}>
+          {/* Right side */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {isAuthenticated ? (
+              <>
+                <IconBadge
+                  to="/wishlist"
+                  icon={<FaHeart size={15} />}
+                  count={wishlistCount}
+                  label="Wishlist"
+                />
+                <IconBadge
+                  to="/cart"
+                  icon={<FaShoppingCart size={15} />}
+                  count={cartCount}
+                  label="Cart"
+                />
+                <IconBadge
+                  to="/notifications"
+                  icon={<FaBell size={15} />}
+                  count={0}
+                  label="Notifications"
+                />
+
+                {/* Profile dropdown */}
+                <div className="relative ml-1" ref={profileRef}>
+                  <button
+                    onClick={() => setProfileOpen((p) => !p)}
+                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-white text-xs font-semibold">
+                      {initials || <FaUser size={12} />}
+                    </span>
+                    <FaChevronDown
+                      size={10}
+                      className={`hidden sm:block text-gray-400 transition-transform ${
+                        profileOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {profileOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-200 bg-white py-2 shadow-lg shadow-black/5"
+                      >
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {user?.name}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {user?.email}
+                          </p>
+                        </div>
+
+                        <NavLink
+                          to="/profile"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          <FaUser size={13} className="text-gray-400" />
+                          Profile
+                        </NavLink>
+                        <NavLink
+                          to="/orders"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          <FaClipboardList
+                            size={13}
+                            className="text-gray-400"
+                          />
+                          Orders
+                        </NavLink>
+                        {canAccessDashboard && (
+                          <NavLink
+                            to={dashboardPath}
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <FaChartLine size={13} className="text-gray-400" />
+                            Dashboard
+                          </NavLink>
+                        )}
+
+                        <div className="my-1 border-t border-gray-100" />
+
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          <FaSignOutAlt size={13} />
+                          Logout
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <div className="hidden sm:flex items-center gap-3">
                 <NavLink
                   to="/login"
-                  className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors"
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  <FaSignInAlt />
                   Login
                 </NavLink>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-              >
                 <NavLink
                   to="/register"
-                  className="
-                  flex items-center gap-2
-                  px-5 py-2 rounded-lg
-                  bg-gradient-to-r from-indigo-500 to-violet-500
-                  text-white text-sm font-semibold
-                  shadow-lg shadow-indigo-500/25
-                  hover:shadow-indigo-500/40
-                  transition-shadow duration-200
-                  "
+                  className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
                 >
-                  <FaUserPlus />
-                  Register
+                  Sign up
                 </NavLink>
-              </motion.div>
-            </>
-          )}
-        </div>
+              </div>
+            )}
 
-        {/* Mobile menu toggle */}
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setMobileOpen((prev) => !prev)}
-          className="lg:hidden flex items-center justify-center h-10 w-10 rounded-lg text-slate-200 hover:bg-white/5"
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
-        </motion.button>
+            {/* Mobile toggle */}
+            <button
+              onClick={() => setMobileOpen((p) => !p)}
+              className="lg:hidden flex h-9 w-9 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 ml-1"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <FaTimes size={16} /> : <FaBars size={16} />}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -244,77 +270,72 @@ const Navbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="lg:hidden overflow-hidden border-t border-white/[0.06] bg-[#0B1120]"
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="lg:hidden overflow-hidden border-t border-gray-200 bg-white"
           >
-            <div className="flex flex-col gap-1 px-4 py-4">
-              {isAuthenticated && (
-                <p className="px-4 pb-2 text-sm text-slate-400">
-                  Welcome,{" "}
-                  <span className="text-white font-semibold">{user?.name}</span>
-                </p>
-              )}
+            <div className="px-4 py-4 space-y-1">
+              {/* Search (mobile) */}
+              <div className="relative mb-3 md:hidden">
+                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none focus:bg-white focus:border-gray-300"
+                />
+              </div>
 
               <NavLink
                 to="/"
-                className={mobileNavClass}
+                className={mobileLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
-                <FaHome /> Home
+                Home
               </NavLink>
               <NavLink
                 to="/products"
-                className={mobileNavClass}
+                className={mobileLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
-                <FaBoxOpen /> Products
+                Products
               </NavLink>
 
-              {isAuthenticated ? (
+              {isAuthenticated && (
                 <>
                   <NavLink
                     to="/wishlist"
-                    className={mobileNavClass}
+                    className={mobileLinkClass}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <FaHeart /> Wishlist
+                    <FaHeart size={14} /> Wishlist
                   </NavLink>
                   <NavLink
                     to="/cart"
-                    className={mobileNavClass}
+                    className={mobileLinkClass}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <FaShoppingCart /> Cart
+                    <FaShoppingCart size={14} /> Cart
                   </NavLink>
                   <NavLink
                     to="/orders"
-                    className={mobileNavClass}
+                    className={mobileLinkClass}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <FaClipboardList /> Orders
-                  </NavLink>
-                  <NavLink
-                    to="/notifications"
-                    className={mobileNavClass}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <FaBell /> Notifications
+                    <FaClipboardList size={14} /> Orders
                   </NavLink>
                   <NavLink
                     to="/profile"
-                    className={mobileNavClass}
+                    className={mobileLinkClass}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <FaUser /> Profile
+                    <FaUser size={14} /> Profile
                   </NavLink>
-
                   {canAccessDashboard && (
                     <NavLink
                       to={dashboardPath}
-                      className={mobileNavClass}
+                      className={mobileLinkClass}
                       onClick={() => setMobileOpen(false)}
                     >
-                      <FaChartLine /> Dashboard
+                      <FaChartLine size={14} /> Dashboard
                     </NavLink>
                   )}
 
@@ -323,38 +344,30 @@ const Navbar = () => {
                       setMobileOpen(false);
                       handleLogout();
                     }}
-                    className="
-                    flex items-center gap-3
-                    mt-2 px-4 py-3 rounded-xl
-                    bg-red-500/10 text-red-400
-                    font-medium
-                    "
+                    className="flex w-full items-center gap-3 px-4 py-3 mt-2 rounded-lg text-sm font-medium text-red-600 bg-red-50"
                   >
-                    <FaSignOutAlt /> Logout
+                    <FaSignOutAlt size={14} /> Logout
                   </button>
                 </>
-              ) : (
-                <>
+              )}
+
+              {!isAuthenticated && (
+                <div className="flex flex-col gap-2 pt-2">
                   <NavLink
                     to="/login"
-                    className={mobileNavClass}
                     onClick={() => setMobileOpen(false)}
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-medium text-gray-700 border border-gray-200"
                   >
-                    <FaSignInAlt /> Login
+                    Login
                   </NavLink>
                   <NavLink
                     to="/register"
                     onClick={() => setMobileOpen(false)}
-                    className="
-                    flex items-center gap-3
-                    mt-2 px-4 py-3 rounded-xl
-                    bg-gradient-to-r from-indigo-500 to-violet-500
-                    text-white font-semibold
-                    "
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-semibold text-white bg-gray-900"
                   >
-                    <FaUserPlus /> Register
+                    Sign up
                   </NavLink>
-                </>
+                </div>
               )}
             </div>
           </motion.div>
