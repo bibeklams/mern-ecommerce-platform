@@ -7,6 +7,7 @@ import orderReducer from "./slices/orderSlice";
 import userReducer from "./slices/userSlice";
 import notificationReducer from "./slices/notificationSlice";
 import dashboardReducer from "./slices/dashboardSlice";
+import wishlistReducer from "./slices/wishListSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -17,5 +18,6 @@ export const store = configureStore({
     user: userReducer,
     notification: notificationReducer,
     dashboard: dashboardReducer,
+    wishlist: wishlistReducer,
   },
 });
