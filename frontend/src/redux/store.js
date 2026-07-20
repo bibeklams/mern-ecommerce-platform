@@ -6,6 +6,7 @@ import cartReducer from "./slices/cartSlice";
 import orderReducer from "./slices/orderSlice";
 import userReducer from "./slices/userSlice";
 import notificationReducer from "./slices/notificationSlice";
+import dashboardReducer from "./slices/dashboardSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -15,5 +16,6 @@ export const store = configureStore({
     order: orderReducer,
     user: userReducer,
     notification: notificationReducer,
+    dashboard: dashboardReducer,
   },
 });
