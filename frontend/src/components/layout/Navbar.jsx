@@ -122,7 +122,7 @@ const Navbar = () => {
             <NavLink to="/home" className={navLinkClass}>
               Home
             </NavLink>
-            <NavLink to="/products" className={navLinkClass}>
+            <NavLink to="/product" className={navLinkClass}>
               Products
             </NavLink>
             {canAccessDashboard && (

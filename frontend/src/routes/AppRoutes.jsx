@@ -20,6 +20,7 @@ import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
 // ===================
 
 import HomePage from "../pages/public/Home";
+// import ProductDetailsPage from "../pages/public/ProductDetailsPage";
 import ProductsPage from "../pages/public/Products";
 import ProductDetailsPage from "../pages/public/ProductDetails";
 import CartPage from "../pages/user/Cart";
@@ -67,8 +68,8 @@ function AppRoutes() {
       <Route element={<MainLayout />}>
         {/* Public */}
         <Route path="/home" element={<HomePage />} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/products/:id" element={<ProductDetailsPage />} />
+        <Route path="/product" element={<ProductsPage />} />
+        <Route path="/product/:id" element={<ProductDetailsPage />} />
         {/* Auth */}
 
         <Route path="/login" element={<LoginPage />} />

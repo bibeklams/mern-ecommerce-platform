@@ -87,7 +87,9 @@ export const getSingleProduct = async (id) => {
     throwError("No product found", 404);
   }
 
-  return product;
+  return {
+    product: product.toObject(),
+  };
 };
 export const updateProduct = async (id, sellerId, data, files) => {
   // Check product exists

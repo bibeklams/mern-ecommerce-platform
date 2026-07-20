@@ -13,8 +13,7 @@ export const addProduct = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: result.message,
-      product: result.product,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -46,10 +45,10 @@ export const getAllSellerProduct = async (req, res, next) => {
 
 export const getSingleProduct = async (req, res, next) => {
   try {
-    const result = await productService.getSingleProduct(req.body.id);
+    const result = await productService.getSingleProduct(req.params.id);
     res.status(200).json({
       success: true,
-      product: result.product,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -66,8 +65,7 @@ export const updateProduct = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: result.message,
-      product: result.product,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -107,8 +105,7 @@ export const deleteProduct = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: result.message,
-      product: result.product,
+      ...result,
     });
   } catch (error) {
     next(error);
