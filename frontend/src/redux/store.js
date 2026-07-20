@@ -9,6 +9,7 @@ import notificationReducer from "./slices/notificationSlice";
 import dashboardReducer from "./slices/dashboardSlice";
 import wishlistReducer from "./slices/wishListSlice";
 import reviewReducer from "./slices/reviewSlice";
+import paymentReducer from "./slices/paymentSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -21,5 +22,6 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     wishlist: wishlistReducer,
     review: reviewReducer,
+    payment: paymentReducer,
   },
 });
