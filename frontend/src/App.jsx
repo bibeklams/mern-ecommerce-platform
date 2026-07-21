@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-
+import { ToastContainer } from "react-toastify";
 import AppRoutes from "./routes/AppRoutes";
 import { getProfile, refreshUser } from "./redux/thunks/authThunk";
 
@@ -26,6 +26,7 @@ function App() {
   return (
     <>
       <AppRoutes />
+      <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </>
   );
 }

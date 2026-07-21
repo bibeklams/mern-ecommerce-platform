@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { FaShoppingCart, FaBolt } from "react-icons/fa";
-
+import { toast } from "react-toastify";
 import { getSingleProduct } from "../../redux/thunks/productThunk";
 import { addToCart } from "../../redux/thunks/cartThunk";
 
@@ -43,15 +43,9 @@ function ProductDetails() {
   const handleAddToCart = async () => {
     if (!checkAuth()) return;
 
-    if (product.stock <= 0) {
-      alert("Product is out of stock");
-      return;
-    }
-
     try {
       await dispatch(addToCart(product._id)).unwrap();
-
-      alert("Product added to cart");
+      toast.success("Product added to cart!");
     } catch (error) {
       console.log(error);
     }
@@ -59,11 +53,6 @@ function ProductDetails() {
 
   const handleBuyNow = async () => {
     if (!checkAuth()) return;
-
-    if (product.stock <= 0) {
-      alert("Product is out of stock");
-      return;
-    }
 
     try {
       await dispatch(addToCart(product._id)).unwrap();
