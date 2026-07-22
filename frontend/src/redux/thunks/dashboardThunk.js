@@ -18,7 +18,11 @@ export const getSellerDashboard = createAsyncThunk(
   "dashboard/getSellerDashboard",
   async (_, { rejectWithValue }) => {
     try {
-      return await dashboardService.getSellerDashboard();
+      const data = await dashboardService.getSellerDashboard();
+
+      console.log("Dashboard Response:", data);
+
+      return data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to load seller dashboard",
