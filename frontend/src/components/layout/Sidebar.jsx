@@ -25,11 +25,6 @@ function Sidebar() {
       icon: <FaTachometerAlt />,
     },
     {
-      name: "Add Product",
-      path: "/seller/add-product",
-      icon: <FaPlus />,
-    },
-    {
       name: "My Products",
       path: "/seller/products",
       icon: <FaBoxOpen />,

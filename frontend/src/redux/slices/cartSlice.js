@@ -12,14 +12,12 @@ import {
 const initialState = {
   items: [],
   count: 0,
-
   loading: false,
   error: null,
 };
 
 const cartSlice = createSlice({
   name: "cart",
-
   initialState,
 
   reducers: {
@@ -42,7 +40,7 @@ const cartSlice = createSlice({
 
       .addCase(getMyCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.cart;
+        state.items = action.payload.carts;
       })
 
       .addCase(getMyCart.rejected, (state, action) => {
@@ -59,11 +57,12 @@ const cartSlice = createSlice({
       })
 
       // ====================
-      // Add Cart
+      // Add To Cart
       // ====================
 
       .addCase(addToCart.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
 
       .addCase(addToCart.fulfilled, (state) => {
@@ -81,6 +80,7 @@ const cartSlice = createSlice({
 
       .addCase(updateCart.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
 
       .addCase(updateCart.fulfilled, (state) => {
@@ -98,6 +98,7 @@ const cartSlice = createSlice({
 
       .addCase(deleteCart.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
 
       .addCase(deleteCart.fulfilled, (state, action) => {
@@ -121,6 +122,7 @@ const cartSlice = createSlice({
 
       .addCase(clearCart.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
 
       .addCase(clearCart.fulfilled, (state) => {

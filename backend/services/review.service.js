@@ -1,21 +1,3 @@
-// 1. Check user exists.
-//         ↓
-// 2. Check product exists.
-//         ↓
-// 3. Check the user has purchased this product.
-//         ↓
-// 4. Check the user hasn't already reviewed it.
-//         ↓
-// 5. Create the review.
-//         ↓
-// 6. Recalculate the product's average rating.
-//         ↓
-// 7. Update Product.averageRating.
-//         ↓
-// 8. Update Product.totalReviews.
-//         ↓
-// 9. Return the created review.
-
 import * as reviewRepository from "../repositories/review.repository.js";
 import * as productRepository from "../repositories/product.repository.js";
 import * as orderRepository from "../repositories/order.repository.js";
