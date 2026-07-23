@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../../components/product/ProductCard";
 import PageNumber from "../../components/common/PageNumber";
 
@@ -8,7 +8,9 @@ import { getAllProducts } from "../../redux/thunks/productThunk";
 
 function Products() {
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
 
+  const category = searchParams.get("category");
   const { products, loading, error, page, totalPages } = useSelector(
     (state) => state.product,
   );
@@ -17,14 +19,16 @@ function Products() {
     dispatch(
       getAllProducts({
         page: 1,
+        category,
       }),
     );
-  }, [dispatch]);
+  }, [dispatch, category]);
 
   const handlePageChange = (newPage) => {
     dispatch(
       getAllProducts({
         page: newPage,
+        category,
       }),
     );
   };
