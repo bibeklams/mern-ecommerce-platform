@@ -26,7 +26,18 @@ export const getProductReviews = createAsyncThunk(
     }
   },
 );
-
+export const getSellerReviews = createAsyncThunk(
+  "review/getSellerReviews",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await reviewService.getSellerReviews();
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch seller reviews",
+      );
+    }
+  },
+);
 export const updateReview = createAsyncThunk(
   "review/updateReview",
   async ({ reviewId, data }, { rejectWithValue }) => {

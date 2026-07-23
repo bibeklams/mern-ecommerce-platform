@@ -4,6 +4,7 @@ import {
   getProductReviews,
   updateReview,
   deleteReview,
+  getSellerReviews,
 } from "../thunks/reviewThunk";
 
 const initialState = {
@@ -44,7 +45,10 @@ const reviewSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      .addCase(getSellerReviews.fulfilled, (state, action) => {
+        state.loading = false;
+        state.sellerReviews = action.payload.reviews;
+      })
       // Get
       .addCase(getProductReviews.pending, (state) => {
         state.loading = true;

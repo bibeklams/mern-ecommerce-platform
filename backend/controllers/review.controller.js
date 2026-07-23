@@ -58,3 +58,15 @@ export const deleteReview = async (req, res, next) => {
     next(error);
   }
 };
+export const getSellerReviews = async (req, res, next) => {
+  try {
+    const reviews = await reviewService.getSellerReviews(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      reviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

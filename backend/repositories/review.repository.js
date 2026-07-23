@@ -15,6 +15,7 @@ export const findOne = (filter) => {
 export const findAll = (filter = {}) => {
   return Review.find(filter)
     .populate("user", "name imageUrl")
+    .populate("product", "name brand images finalPrice")
     .sort({ createdAt: -1 });
 };
 

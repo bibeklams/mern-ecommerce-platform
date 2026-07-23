@@ -140,3 +140,8 @@ export const deleteReview = async (userId, reviewId) => {
     message: "Review deleted successfully.",
   };
 };
+export const getSellerReviews = async (sellerId) => {
+  return await reviewRepository.findAll({
+    seller: sellerId,
+  });
+};
