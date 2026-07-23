@@ -155,10 +155,26 @@ export const getAllProduct = async (search, category, options) => {
   const filter = {};
 
   if (search) {
-    filter.name = {
-      $regex: search,
-      $options: "i",
-    };
+    filter.$or = [
+      {
+        name: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        brand: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+    ];
   }
 
   if (category) {

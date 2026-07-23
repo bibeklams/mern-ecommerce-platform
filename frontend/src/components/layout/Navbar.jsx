@@ -38,7 +38,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
-
+  const [search, setSearch] = useState("");
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -48,7 +48,13 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  const handleSearch = (e) => {
+    e.preventDefault();
 
+    if (!search.trim()) return;
+
+    navigate(`/product?search=${encodeURIComponent(search)}`);
+  };
   const handleLogout = async () => {
     try {
       setProfileOpen(false);
@@ -107,14 +113,17 @@ const Navbar = () => {
 
           {/* Search (desktop) */}
           <div className="hidden md:flex flex-1 max-w-md">
-            <div className="relative w-full">
+            <form onSubmit={handleSearch} className="relative w-full">
               <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+
               <input
                 type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products..."
                 className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-900/5 transition-all"
               />
-            </div>
+            </form>
           </div>
 
           {/* Center links (desktop) */}

@@ -11,6 +11,7 @@ function Products() {
   const [searchParams] = useSearchParams();
 
   const category = searchParams.get("category");
+  const search = searchParams.get("search");
   const { products, loading, error, page, totalPages } = useSelector(
     (state) => state.product,
   );
@@ -20,15 +21,17 @@ function Products() {
       getAllProducts({
         page: 1,
         category,
+        search,
       }),
     );
-  }, [dispatch, category]);
+  }, [dispatch, category, search]);
 
   const handlePageChange = (newPage) => {
     dispatch(
       getAllProducts({
         page: newPage,
         category,
+        search,
       }),
     );
   };
