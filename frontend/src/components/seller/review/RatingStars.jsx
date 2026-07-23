@@ -8,12 +8,14 @@ function RatingStars({ rating = 0, size = 18 }) {
           key={star}
           size={size}
           className={
-            star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+            star <= rating ? "fill-amber-400 text-amber-400" : "text-gray-200"
           }
         />
       ))}
 
-      <span className="ml-2 text-sm font-medium text-gray-600">({rating})</span>
+      <span className="ml-1.5 text-sm font-medium text-gray-500">
+        ({rating})
+      </span>
     </div>
   );
 }

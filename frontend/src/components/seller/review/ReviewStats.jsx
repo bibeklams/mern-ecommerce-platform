@@ -20,62 +20,74 @@ function ReviewStats({ reviews = [] }) {
     {
       title: "Total Reviews",
       value: totalReviews,
-      icon: <MessageSquare size={28} />,
-      color: "bg-blue-500",
+      icon: <MessageSquare size={16} />,
+      iconBg: "bg-indigo-50",
+      color: "text-indigo-600",
     },
     {
       title: "Average Rating",
       value: averageRating,
-      icon: <Star size={28} />,
-      color: "bg-yellow-500",
+      icon: <Star size={16} />,
+      iconBg: "bg-amber-50",
+      color: "text-amber-500",
     },
     {
       title: "5 Star",
       value: fiveStar,
-      icon: <Star size={28} />,
-      color: "bg-green-500",
+      icon: <Star size={16} />,
+      iconBg: "bg-emerald-50",
+      color: "text-emerald-600",
     },
     {
       title: "4 Star",
       value: fourStar,
-      icon: <Star size={28} />,
-      color: "bg-emerald-500",
+      icon: <Star size={16} />,
+      iconBg: "bg-emerald-50",
+      color: "text-emerald-500",
     },
     {
       title: "3 Star",
       value: threeStar,
-      icon: <Star size={28} />,
-      color: "bg-orange-500",
+      icon: <Star size={16} />,
+      iconBg: "bg-amber-50",
+      color: "text-amber-500",
     },
     {
       title: "2 Star",
       value: twoStar,
-      icon: <Star size={28} />,
-      color: "bg-red-400",
+      icon: <Star size={16} />,
+      iconBg: "bg-red-50",
+      color: "text-red-400",
     },
     {
       title: "1 Star",
       value: oneStar,
-      icon: <Star size={28} />,
-      color: "bg-red-600",
+      icon: <Star size={16} />,
+      iconBg: "bg-red-50",
+      color: "text-red-600",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-5">
+    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
       {stats.map((item) => (
-        <div key={item.title} className="bg-white rounded-xl border shadow p-5">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-500">{item.title}</p>
+        <div
+          key={item.title}
+          className="bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">{item.title}</p>
 
-              <h2 className="text-3xl font-bold mt-2">{item.value}</h2>
-            </div>
-
-            <div className={`${item.color} text-white p-3 rounded-xl`}>
+            <span
+              className={`flex h-8 w-8 items-center justify-center rounded-lg ${item.iconBg} ${item.color}`}
+            >
               {item.icon}
-            </div>
+            </span>
           </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mt-2.5">
+            {item.value}
+          </h2>
         </div>
       ))}
     </div>
