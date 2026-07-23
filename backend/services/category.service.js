@@ -50,6 +50,7 @@ export const getAllCategory = async () => {
   const categories = await categoryRepository.getAllCategory();
   return {
     categories,
+    // categories: categories.toObject(),
   };
 };
 export const getSingleCategory = async (id) => {
