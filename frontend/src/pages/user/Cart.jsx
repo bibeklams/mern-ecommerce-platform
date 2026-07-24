@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaPlus, FaMapMarkerAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { initiateEsewaPayment } from "../../redux/thunks/paymentThunk";
 
 import ShippingAddress from "../../components/Cart/ShippingAddress";
 import OrderSummary from "../../components/Cart/OrderSummary";
@@ -17,6 +20,7 @@ import { createOrder } from "../../redux/thunks/orderThunk";
 
 function Cart() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { items: cart } = useSelector((state) => state.cart);
 
   const [selectedItems, setSelectedItems] = useState([]);
@@ -26,6 +30,40 @@ function Cart() {
   const [showShippingForm, setShowShippingForm] = useState(false);
   const [shippingAddress, setShippingAddress] = useState(null);
 
+  const submitEsewaForm = (payment) => {
+    const form = document.createElement("form");
+
+    form.method = "POST";
+    form.action = payment.payment_url;
+
+    const fields = {
+      amount: payment.amount,
+      tax_amount: payment.tax_amount,
+      total_amount: payment.total_amount,
+      transaction_uuid: payment.transaction_uuid,
+      product_code: payment.product_code,
+      product_service_charge: payment.product_service_charge,
+      product_delivery_charge: payment.product_delivery_charge,
+      success_url: payment.success_url,
+      failure_url: payment.failure_url,
+      signed_field_names: payment.signed_field_names,
+      signature: payment.signature,
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement("input");
+
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+
+    form.submit();
+  };
   useEffect(() => {
     dispatch(getMyCart());
   }, [dispatch]);
@@ -142,7 +180,7 @@ function Cart() {
 
   const handlePlaceOrder = async () => {
     if (!shippingAddress) {
-      alert("Please add shipping address.");
+      toast.error("Please add shipping address.");
       return;
     }
 
@@ -159,13 +197,44 @@ function Cart() {
       shippingAddress,
     };
 
-    const result = await dispatch(createOrder(body));
+    try {
+      // Create Order
+      const order = await dispatch(createOrder(body)).unwrap();
 
-    if (createOrder.fulfilled.match(result)) {
-      dispatch(getMyCart());
+      // ==========================
+      // Cash On Delivery
+      // ==========================
+      if (paymentMethod === "COD") {
+        toast.success("Order placed successfully.");
 
-      setSelectedItems([]);
-      setShippingAddress(null);
+        dispatch(getMyCart());
+
+        setSelectedItems([]);
+        setShippingAddress(null);
+
+        navigate("/orders");
+
+        return;
+      }
+
+      // ==========================
+      // eSewa Payment
+      // ==========================
+      if (paymentMethod === "ESEWA") {
+        console.log("Created Order:", order);
+
+        // If your backend returns { orderId: "..." }
+        const orderId = order.orderId;
+
+        // If your backend returns { order: { _id: "..." } }
+        // const orderId = order.order._id;
+
+        const payment = await dispatch(initiateEsewaPayment(orderId)).unwrap();
+
+        submitEsewaForm(payment);
+      }
+    } catch (error) {
+      toast.error(error?.message || error);
     }
   };
 

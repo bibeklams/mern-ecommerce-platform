@@ -57,6 +57,9 @@ const paymentSlice = createSlice({
       .addCase(verifyEsewaPayment.fulfilled, (state, action) => {
         state.loading = false;
         state.paymentResult = action.payload;
+
+        // Clear initiate payment data
+        state.paymentData = null;
       })
 
       .addCase(verifyEsewaPayment.rejected, (state, action) => {
