@@ -21,7 +21,7 @@ router.use("/cart", cartRoutes);
 router.use("/order", orderRoutes);
 router.use("/review", reviewRoutes);
 router.use("/dashboard", dashboardRoutes);
-router.use("/payments", paymentRoutes);
+router.use("/payment", paymentRoutes);
 router.use("/notifications", notificationroutes);
 
 export default router;

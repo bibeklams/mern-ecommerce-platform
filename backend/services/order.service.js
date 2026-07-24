@@ -6,13 +6,18 @@ import * as notificationService from "./notification.service.js";
 import { throwError } from "../utils/errorHandler.js";
 
 export const createOrder = async (userId, data) => {
-  // Check user
+  // ==========================
+  // Check User
+  // ==========================
   const user = await userRepository.findUserById(userId);
+
   if (!user) {
     throwError("User not found.", 404);
   }
 
-  // Get user's cart
+  // ==========================
+  // Get Cart
+  // ==========================
   const cartItems = await cartRepository.findByUser(userId);
 
   if (!cartItems.length) {
@@ -22,7 +27,9 @@ export const createOrder = async (userId, data) => {
   const items = [];
   let totalAmount = 0;
 
-  // Validate products & prepare order items
+  // ==========================
+  // Validate Products
+  // ==========================
   for (const cartItem of cartItems) {
     const product = await productRepository.findById(cartItem.product);
 
@@ -53,7 +60,9 @@ export const createOrder = async (userId, data) => {
     totalAmount += totalPrice;
   }
 
-  // Create order
+  // ==========================
+  // Create Order
+  // ==========================
   const order = await orderRepository.createOrder({
     user: userId,
     items,
@@ -62,38 +71,46 @@ export const createOrder = async (userId, data) => {
     paymentStatus: "PENDING",
     totalAmount,
   });
+
+  // ==========================
+  // Notification
+  // ==========================
   await notificationService.createNotification({
     user: userId,
     title: "Order Placed",
     message: "Your order has been placed successfully.",
     type: "ORDER",
   });
-  // Only for Cash on Delivery
+
+  // ==========================
+  // Cash On Delivery
+  // ==========================
   if (data.paymentMethod === "COD") {
-    // Reduce stock
     for (const cartItem of cartItems) {
       const product = await productRepository.findById(cartItem.product);
 
-      const updatedData = {
-        stock: product.stock - cartItem.quantity,
-      };
+      const remainingStock = product.stock - cartItem.quantity;
 
-      if (updatedData.stock === 0) {
-        updatedData.status = "OUT_OF_STOCK"; // Or whatever status your model uses
-      }
-
-      await productRepository.updateProduct(product._id, updatedData);
+      await productRepository.updateProduct(product._id, {
+        stock: remainingStock,
+        ...(remainingStock === 0 && {
+          status: "OUT_OF_STOCK",
+        }),
+      });
     }
 
-    // Clear cart
+    // Clear Cart
     await cartRepository.clearCart({
       user: userId,
     });
   }
 
+  // ==========================
+  // Response
+  // ==========================
   return {
     message: "Order placed successfully.",
-    order,
+    orderId: order._id,
   };
 };
 
@@ -111,8 +128,8 @@ export const getAllOrders = async (query) => {
   const orders = await orderRepository.findAll(filter);
 
   return {
-    message: "Orders fetched successfully.",
-    orders,
+    message: "Order placed successfully.",
+    orderId: order._id,
   };
 };
 
@@ -135,14 +152,6 @@ export const getSellerOrders = async (sellerId, query) => {
   const filter = {
     "items.seller": sellerId,
   };
-
-  if (query.paymentStatus) {
-    filter.paymentStatus = query.paymentStatus;
-  }
-
-  if (query.orderStatus) {
-    filter.orderStatus = query.orderStatus;
-  }
 
   const orders = await orderRepository.findAll(filter);
 
@@ -256,16 +265,22 @@ export const sellerUpdateOrderStatus = async (
     throwError("Unauthorized.", 403);
   }
 
-  // Allowed statuses
-  const allowedStatuses = ["PROCESSING", "SHIPPED"];
-
-  if (!allowedStatuses.includes(orderStatus)) {
-    throwError("Invalid order status.", 400);
-  }
-
   // Prevent updating to the same status
   if (order.orderStatus === orderStatus) {
     throwError(`Order is already ${orderStatus}.`, 400);
+  }
+
+  // Valid status transitions
+  const statusFlow = {
+    PENDING: ["PROCESSING", "CANCELLED"],
+    PROCESSING: ["SHIPPED", "CANCELLED"],
+    SHIPPED: ["DELIVERED"],
+    DELIVERED: [],
+    CANCELLED: [],
+  };
+
+  if (!statusFlow[order.orderStatus]?.includes(orderStatus)) {
+    throwError("Invalid order status transition.", 400);
   }
 
   // Update order
@@ -273,7 +288,7 @@ export const sellerUpdateOrderStatus = async (
     orderStatus,
   });
 
-  // Notification message
+  // Notification
   let title = "";
   let message = "";
 
@@ -287,9 +302,18 @@ export const sellerUpdateOrderStatus = async (
       title = "Order Shipped";
       message = `Your order #${order._id} has been shipped.`;
       break;
+
+    case "DELIVERED":
+      title = "Order Delivered";
+      message = `Your order #${order._id} has been delivered.`;
+      break;
+
+    case "CANCELLED":
+      title = "Order Cancelled";
+      message = `Your order #${order._id} has been cancelled.`;
+      break;
   }
 
-  // Notify user
   await notificationService.createNotification({
     user: order.user,
     title,

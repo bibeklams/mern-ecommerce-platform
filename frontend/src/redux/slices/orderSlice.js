@@ -13,7 +13,8 @@ import {
 } from "../thunks/orderThunk";
 
 const initialState = {
-  orders: [],
+  orders: [], // Customer orders
+  sellerOrders: [], // Seller dashboard orders
   order: null,
 
   loading: false,
@@ -136,7 +137,7 @@ const orderSlice = createSlice({
       .addCase(getSellerOrders.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.orders = action.payload.orders;
+        state.sellerOrders = action.payload.orders;
       })
 
       .addCase(getSellerOrders.rejected, (state, action) => {

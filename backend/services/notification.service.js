@@ -1,4 +1,4 @@
-import * as notificationReposotory from "../repositories/notification.repository.js";
+import * as notificationRepository from "../repositories/notification.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
 import { throwError } from "../utils/errorHandler.js";
 
@@ -25,7 +25,7 @@ export const createNotification = async (data) => {
   });
 };
 export const myNotifications = async (userId) => {
-  const notifications = await notificationReposotory.findNotifications({
+  const notifications = await notificationRepository.findNotifications({
     user: userId,
   });
 

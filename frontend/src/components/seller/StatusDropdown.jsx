@@ -4,8 +4,8 @@ function StatusDropdown({ currentStatus, onChange }) {
   const [status, setStatus] = useState(currentStatus);
 
   const statusFlow = {
-    PENDING: ["CONFIRMED", "CANCELLED"],
-    CONFIRMED: ["SHIPPED", "CANCELLED"],
+    PENDING: ["PROCESSING", "CANCELLED"],
+    PROCESSING: ["SHIPPED", "CANCELLED"],
     SHIPPED: ["DELIVERED"],
     DELIVERED: [],
     CANCELLED: [],
@@ -19,7 +19,6 @@ function StatusDropdown({ currentStatus, onChange }) {
     if (!newStatus) return;
 
     setStatus(newStatus);
-
     onChange(newStatus);
   };
 
