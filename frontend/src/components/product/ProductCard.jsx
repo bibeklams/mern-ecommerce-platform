@@ -1,8 +1,74 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+
+import { addToCart } from "../../redux/thunks/cartThunk";
+import {
+  addToWishlist,
+  removeFromWishlist,
+  getMyWishlist,
+  countWishlist,
+} from "../../redux/thunks/wishlistThunk";
 
 function ProductCard({ product }) {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { wishlist } = useSelector((state) => state.wishlist);
+  const { loading } = useSelector((state) => state.cart);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  // Check if product already exists in wishlist
+  const isWishlisted = wishlist.some(
+    (item) => item.product._id === product._id,
+  );
+
+  // ==========================
+  // Add To Cart
+  // ==========================
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await dispatch(addToCart(product._id)).unwrap();
+      toast.success("Product added to cart.");
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  // ==========================
+  // Wishlist
+  // ==========================
+
+  const handleWishlist = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (isWishlisted) {
+        await dispatch(removeFromWishlist(product._id)).unwrap();
+        toast.success("Removed from wishlist.");
+      } else {
+        await dispatch(addToWishlist(product._id)).unwrap();
+        toast.success("Added to wishlist.");
+      }
+
+      // Refresh wishlist
+      dispatch(getMyWishlist());
+      dispatch(countWishlist());
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
   return (
     <div className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
       {/* Image */}
@@ -34,43 +100,36 @@ function ProductCard({ product }) {
 
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-lg font-bold text-gray-900">
-            ${product.finalPrice}
+            Rs. {product.finalPrice.toLocaleString()}
           </span>
 
           {product.discountAmount > 0 && (
             <span className="text-xs text-gray-400 line-through">
-              ${product.price}
+              Rs. {product.price.toLocaleString()}
             </span>
           )}
         </div>
 
         {/* Actions */}
         <div className="flex gap-2 mt-3">
+          {/* Add to Cart */}
           <button
-            className="
-            flex-1
-            flex items-center justify-center gap-2
-            bg-gray-900 hover:bg-gray-800
-            text-white text-sm font-medium
-            py-2 rounded-lg
-            transition-colors
-            "
+            onClick={handleAddToCart}
+            disabled={loading}
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
           >
             <FaShoppingCart size={13} />
-            Add to Cart
+            {loading ? "Adding..." : "Add to Cart"}
           </button>
 
+          {/* Wishlist */}
           <button
-            className="
-            flex items-center justify-center
-            h-9 w-9
-            rounded-lg
-            border border-gray-200
-            text-gray-500
-            hover:text-red-500 hover:border-red-200 hover:bg-red-50
-            transition-colors
-            "
-            aria-label="Add to wishlist"
+            onClick={handleWishlist}
+            className={`flex items-center justify-center h-9 w-9 rounded-lg border transition-all duration-200 ${
+              isWishlisted
+                ? "bg-red-50 border-red-300 text-red-500"
+                : "border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-300 hover:bg-red-50"
+            }`}
           >
             <FaHeart size={14} />
           </button>
