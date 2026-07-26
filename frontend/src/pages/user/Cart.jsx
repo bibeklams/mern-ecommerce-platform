@@ -180,62 +180,76 @@ function Cart() {
 
   const handlePlaceOrder = async () => {
     if (!shippingAddress) {
-      toast.error("Please add shipping address.");
+      alert("Please add shipping address.");
       return;
     }
 
-    const orderItems = cart
-      .filter((item) => selectedItems.includes(item.product._id))
-      .map((item) => ({
-        product: item.product._id,
-        quantity: item.quantity,
-      }));
-
     const body = {
       paymentMethod,
-      items: orderItems,
       shippingAddress,
     };
 
     try {
-      // Create Order
-      const order = await dispatch(createOrder(body)).unwrap();
+      // Create order
+      const result = await dispatch(createOrder(body)).unwrap();
 
-      // ==========================
-      // Cash On Delivery
-      // ==========================
+      // ===========================
+      // COD
+      // ===========================
       if (paymentMethod === "COD") {
-        toast.success("Order placed successfully.");
-
         dispatch(getMyCart());
 
         setSelectedItems([]);
         setShippingAddress(null);
 
-        navigate("/orders");
-
         return;
       }
 
-      // ==========================
-      // eSewa Payment
-      // ==========================
-      if (paymentMethod === "ESEWA") {
-        console.log("Created Order:", order);
+      // ===========================
+      // ESEWA
+      // ===========================
+      const payment = await dispatch(
+        initiateEsewaPayment(result.orderId),
+      ).unwrap();
 
-        // If your backend returns { orderId: "..." }
-        const orderId = order.orderId;
-
-        // If your backend returns { order: { _id: "..." } }
-        // const orderId = order.order._id;
-
-        const payment = await dispatch(initiateEsewaPayment(orderId)).unwrap();
-
-        submitEsewaForm(payment);
-      }
+      redirectToEsewa(payment);
     } catch (error) {
-      toast.error(error?.message || error);
+      console.log(error);
     }
+  };
+  const redirectToEsewa = (paymentData) => {
+    const form = document.createElement("form");
+
+    form.method = "POST";
+    form.action = paymentData.payment_url;
+
+    const fields = {
+      amount: paymentData.amount,
+      tax_amount: paymentData.tax_amount,
+      total_amount: paymentData.total_amount,
+      transaction_uuid: paymentData.transaction_uuid,
+      product_code: paymentData.product_code,
+      product_service_charge: paymentData.product_service_charge,
+      product_delivery_charge: paymentData.product_delivery_charge,
+      success_url: paymentData.success_url,
+      failure_url: paymentData.failure_url,
+      signed_field_names: paymentData.signed_field_names,
+      signature: paymentData.signature,
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement("input");
+
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+
+    form.submit();
   };
 
   return (

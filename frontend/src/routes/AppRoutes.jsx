@@ -7,6 +7,8 @@ import MainLayout from "../layouts/MainLayout";
 import SellerLayout from "../layouts/SellerLayout";
 import AdminLayout from "../layouts/AdminLayout";
 
+import PaymentSuccess from "../pages/payment/PaymentSuccess";
+import PaymentFailed from "../pages/payment/PaymentFailed";
 // ===================
 // Auth Pages
 // ===================
@@ -99,6 +101,9 @@ function AppRoutes() {
           <Route path="/reviews" element={<ReviewsPage />} />
 
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+
+          <Route path="/payment-failed" element={<PaymentFailed />} />
         </Route>
       </Route>
 

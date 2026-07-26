@@ -81,7 +81,7 @@ export const initiateEsewaPayment = async (userId, orderId) => {
 export const verifyEsewaPayment = async (userId, transactionUuid) => {
   // 1. Find order
   const order = await orderRepository.findOne({
-    transactionUuid,
+    transactionId: transactionUuid,
   });
 
   if (!order) {
