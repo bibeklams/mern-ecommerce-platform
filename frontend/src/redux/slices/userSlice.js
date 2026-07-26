@@ -180,7 +180,12 @@ const userSlice = createSlice({
       })
       .addCase(banUser.fulfilled, (state, action) => {
         state.loading = false;
+
         state.success = action.payload.message;
+
+        state.users = state.users.map((user) =>
+          user._id === action.payload.user._id ? action.payload.user : user,
+        );
       })
       .addCase(banUser.rejected, (state, action) => {
         state.loading = false;
@@ -197,7 +202,12 @@ const userSlice = createSlice({
       })
       .addCase(unbanUser.fulfilled, (state, action) => {
         state.loading = false;
+
         state.success = action.payload.message;
+
+        state.users = state.users.map((user) =>
+          user._id === action.payload.user._id ? action.payload.user : user,
+        );
       })
       .addCase(unbanUser.rejected, (state, action) => {
         state.loading = false;
@@ -214,7 +224,12 @@ const userSlice = createSlice({
       })
       .addCase(suspendUser.fulfilled, (state, action) => {
         state.loading = false;
+
         state.success = action.payload.message;
+
+        state.users = state.users.map((user) =>
+          user._id === action.payload.user._id ? action.payload.user : user,
+        );
       })
       .addCase(suspendUser.rejected, (state, action) => {
         state.loading = false;
@@ -231,7 +246,12 @@ const userSlice = createSlice({
       })
       .addCase(unsuspendUser.fulfilled, (state, action) => {
         state.loading = false;
+
         state.success = action.payload.message;
+
+        state.users = state.users.map((user) =>
+          user._id === action.payload.user._id ? action.payload.user : user,
+        );
       })
       .addCase(unsuspendUser.rejected, (state, action) => {
         state.loading = false;

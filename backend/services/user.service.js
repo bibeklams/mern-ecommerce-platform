@@ -1,16 +1,28 @@
 import * as userRepository from "../repositories/user.repository.js";
 import * as notificationService from "./notification.service.js";
 import { throwError } from "../utils/errorHandler.js";
-export const getAllUsers = async () => {
-  const users = await userRepository.findAllUsers({
+
+export const getAllUsers = async (query) => {
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const filter = {
     role: "USER",
     isVerified: true,
-  });
+  };
+
+  const users = await userRepository.findAllUsers(filter, page, limit);
+
+  const total = await userRepository.countUsers(filter);
 
   return {
     users,
+    page,
+    pages: Math.ceil(total / limit),
+    total,
   };
 };
+
 export const getAllSellers = async () => {
   const users = await userRepository.findAllUsers({
     role: "SELLER",
@@ -51,6 +63,7 @@ const updateUserStatus = async (id, status) => {
 
   return {
     message: `User ${status.toLowerCase()} successfully`,
+    user,
   };
 };
 

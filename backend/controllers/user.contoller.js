@@ -15,11 +15,11 @@ export const getProfile = async (req, res, next) => {
 
 export const getAllUsers = async (req, res, next) => {
   try {
-    const result = await userService.getAllUsers();
+    const result = await userService.getAllUsers(req.query);
 
     res.status(200).json({
       success: true,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -32,7 +32,7 @@ export const getAllSellers = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -40,11 +40,11 @@ export const getAllSellers = async (req, res, next) => {
 };
 export const getSingleUser = async (req, res, next) => {
   try {
-    const result = await userService.getAllUsers(req.params.id);
+    const result = await userService.getSingleUser(req.params.id);
 
     res.status(200).json({
       success: true,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -116,8 +116,7 @@ export const approveSeller = async (req, res, next) => {
     const result = await userService.approveSeller(req.params.id);
     res.status(200).json({
       success: true,
-      message: result.message,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);
@@ -128,8 +127,7 @@ export const rejectSeller = async (req, res, next) => {
     const result = await userService.rejectSeller(req.params.id);
     res.status(200).json({
       success: true,
-      message: result.message,
-      data: result,
+      ...result,
     });
   } catch (error) {
     next(error);

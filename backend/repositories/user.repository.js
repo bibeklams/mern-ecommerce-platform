@@ -12,8 +12,10 @@ export const findUserById = (id) => {
 export const createUser = (userData) => {
   return User.create(userData);
 };
-export const findAllUsers = (filter = {}) => {
-  return User.find(filter).sort({ name: 1 });
+export const findAllUsers = (filter = {}, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+
+  return User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
 };
 export const updateUser = (id, data) => {
   return User.findByIdAndUpdate(id, data, {
