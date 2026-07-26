@@ -11,8 +11,8 @@ export const createOrder = async (data) => {
 };
 
 // My Orders
-export const getMyOrders = async () => {
-  const response = await api.get("/order/my-orders");
+export const getMyOrders = async (page = 1) => {
+  const response = await api.get(`/order/my-orders?page=${page}&limit=10`);
   return response.data;
 };
 
@@ -33,9 +33,9 @@ export const cancelOrder = async (orderId) => {
 // ==============================
 
 // Seller Orders
-export const getSellerOrders = async () => {
-  const response = await api.get("/order/seller/orders");
-  return response.data;
+export const getSellerOrders = async (page) => {
+  const { data } = await api.get(`/order/seller/orders?page=${page}&limit=10`);
+  return data;
 };
 
 // Update Order Status

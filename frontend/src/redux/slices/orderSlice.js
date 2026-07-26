@@ -13,14 +13,17 @@ import {
 } from "../thunks/orderThunk";
 
 const initialState = {
-  orders: [], // Customer orders
-  sellerOrders: [], // Seller dashboard orders
+  orders: [],
+  sellerOrders: [], // <-- Add this
   order: null,
+
+  page: 1,
+  pages: 1,
+  total: 0,
 
   loading: false,
   error: null,
 };
-
 const orderSlice = createSlice({
   name: "order",
 
@@ -72,6 +75,9 @@ const orderSlice = createSlice({
         state.loading = false;
 
         state.orders = action.payload.orders;
+        state.page = action.payload.page;
+        state.pages = action.payload.pages;
+        state.total = action.payload.total;
       })
 
       .addCase(getMyOrders.rejected, (state, action) => {
@@ -138,6 +144,10 @@ const orderSlice = createSlice({
         state.loading = false;
 
         state.sellerOrders = action.payload.orders;
+
+        state.page = action.payload.page;
+        state.pages = action.payload.pages;
+        state.total = action.payload.total;
       })
 
       .addCase(getSellerOrders.rejected, (state, action) => {
@@ -157,7 +167,7 @@ const orderSlice = createSlice({
       .addCase(sellerUpdateOrderStatus.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.orders = state.orders.map((order) =>
+        state.sellerOrders = state.sellerOrders.map((order) =>
           order._id === action.payload.order._id ? action.payload.order : order,
         );
 

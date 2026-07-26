@@ -5,6 +5,7 @@ import { FaSearch } from "react-icons/fa";
 
 import OrderTable from "../../components/seller/OrderTable";
 import OrderDetailsModal from "../../components/seller/OrderDetailsModal";
+import PageNumber from "../../components/common/PageNumber";
 
 import {
   getSellerOrders,
@@ -14,10 +15,9 @@ import {
 function Orders() {
   const dispatch = useDispatch();
 
-  const { sellerOrders, loading } = useSelector((state) => state.order);
+  const [page, setPage] = useState(1);
 
-  // DEBUG
-  console.log("Redux sellerOrders:", sellerOrders);
+  const { sellerOrders, loading, pages } = useSelector((state) => state.order);
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openModal, setOpenModal] = useState(false);
@@ -25,21 +25,28 @@ function Orders() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  useEffect(() => {
-    dispatch(getSellerOrders());
-  }, [dispatch]);
+  // ==========================
+  // Fetch Orders
+  // ==========================
 
   useEffect(() => {
-    console.log("sellerOrders updated:", sellerOrders);
-  }, [sellerOrders]);
+    dispatch(getSellerOrders(page));
+  }, [dispatch, page]);
+
+  // ==========================
+  // View Order
+  // ==========================
 
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setOpenModal(true);
   };
 
+  // ==========================
+  // Update Status
+  // ==========================
+
   const handleStatusChange = async (orderId, status) => {
-    console.log("Status being sent:", status);
     const result = await dispatch(
       sellerUpdateOrderStatus({
         orderId,
@@ -49,11 +56,15 @@ function Orders() {
 
     if (sellerUpdateOrderStatus.fulfilled.match(result)) {
       toast.success("Order updated successfully");
-      dispatch(getSellerOrders());
+      dispatch(getSellerOrders(page));
     } else {
       toast.error(result.payload);
     }
   };
+
+  // ==========================
+  // Search + Filter
+  // ==========================
 
   const filteredOrders =
     sellerOrders?.filter((order) => {
@@ -70,15 +81,17 @@ function Orders() {
       return matchSearch && matchStatus;
     }) || [];
 
-  // DEBUG
-  console.log("Filtered Orders:", filteredOrders);
-
   return (
     <main className="space-y-6">
+      {/* Header */}
+
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+
         <p className="text-sm text-gray-500 mt-1">Manage customer orders</p>
       </div>
+
+      {/* Search + Filter */}
 
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col lg:flex-row gap-3 justify-between">
         <div className="relative w-full lg:w-96">
@@ -107,12 +120,24 @@ function Orders() {
         </select>
       </div>
 
+      {/* Orders */}
+
       <OrderTable
         orders={filteredOrders}
         loading={loading}
         onView={handleViewOrder}
         onStatusChange={handleStatusChange}
       />
+
+      {/* Pagination */}
+
+      <PageNumber
+        currentPage={page}
+        totalPages={pages}
+        onPageChange={setPage}
+      />
+
+      {/* Order Details */}
 
       <OrderDetailsModal
         isOpen={openModal}

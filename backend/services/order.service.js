@@ -71,7 +71,6 @@ export const createOrder = async (userId, data) => {
     paymentStatus: "PENDING",
     totalAmount,
   });
-
   // ==========================
   // Notification
   // ==========================
@@ -132,19 +131,33 @@ export const getAllOrders = async (query) => {
     orderId: order._id,
   };
 };
-
-export const myOrders = async (userId) => {
+export const myOrders = async (userId, query) => {
   const user = await userRepository.findUserById(userId);
 
   if (!user) {
-    throwError("No user found.", 404);
+    throwError("User not found.", 404);
   }
 
-  const orders = await orderRepository.findAll({ user: userId });
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const filter = {
+    user: userId,
+  };
+
+  const orders = await orderRepository.findAll(filter, {
+    page,
+    limit,
+  });
+
+  const total = await orderRepository.countOrders(filter);
 
   return {
     message: "Orders fetched successfully.",
     orders,
+    page,
+    pages: Math.ceil(total / limit),
+    total,
   };
 };
 
@@ -153,11 +166,22 @@ export const getSellerOrders = async (sellerId, query) => {
     "items.seller": sellerId,
   };
 
-  const orders = await orderRepository.findAll(filter);
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const orders = await orderRepository.findAll(filter, {
+    page,
+    limit,
+  });
+
+  const total = await orderRepository.countOrders(filter);
 
   return {
     message: "Orders fetched successfully.",
     orders,
+    page,
+    pages: Math.ceil(total / limit),
+    total,
   };
 };
 

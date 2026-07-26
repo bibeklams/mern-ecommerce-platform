@@ -12,10 +12,14 @@ export const findOne = (filter) => {
   return Order.findOne(filter);
 };
 
-export const findAll = (filter = {}) => {
+export const findAll = (filter = {}, { page = 1, limit = 10 } = {}) => {
+  const skip = (page - 1) * limit;
+
   return Order.find(filter)
     .populate("user", "name email")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 };
 
 export const update = (id, data) => {

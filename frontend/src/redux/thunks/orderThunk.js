@@ -22,13 +22,11 @@ export const createOrder = createAsyncThunk(
 // My Orders
 export const getMyOrders = createAsyncThunk(
   "order/getMyOrders",
-  async (_, { rejectWithValue }) => {
+  async (page = 1, { rejectWithValue }) => {
     try {
-      return await orderService.getMyOrders();
+      return await orderService.getMyOrders(page);
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch orders",
-      );
+      return rejectWithValue(error.response?.data?.message);
     }
   },
 );
@@ -68,9 +66,9 @@ export const cancelOrder = createAsyncThunk(
 // Seller Orders
 export const getSellerOrders = createAsyncThunk(
   "order/getSellerOrders",
-  async (_, { rejectWithValue }) => {
+  async (page = 1, { rejectWithValue }) => {
     try {
-      return await orderService.getSellerOrders();
+      return await orderService.getSellerOrders(page);
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch seller orders",

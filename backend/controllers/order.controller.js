@@ -24,7 +24,9 @@ export const getAllOrders = async (req, res, next) => {
 export const myOrders = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const result = await orderService.myOrders(userId);
+
+    const result = await orderService.myOrders(userId, req.query);
+
     res.status(200).json({
       success: true,
       ...result,
@@ -56,12 +58,11 @@ export const getSingleOrder = async (req, res, next) => {
       req.params.orderId,
     );
 
-    res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    next(error);
+    console.log(result.order.items[0].image);
+
+    res.json(result);
+  } catch (err) {
+    next(err);
   }
 };
 export const getSellerOrders = async (req, res, next) => {

@@ -6,13 +6,15 @@ export const createReview = async (productId, data) => {
 };
 
 export const getProductReviews = async (productId) => {
-  const response = await api.get(`/review/${productId}`);
+  const response = await api.get(`/review/product/${productId}`);
   return response.data;
 };
+
 export const getSellerReviews = async () => {
   const response = await api.get("/review/seller");
   return response.data;
 };
+
 export const updateReview = async (reviewId, data) => {
   const response = await api.patch(`/review/${reviewId}`, data);
   return response.data;

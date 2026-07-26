@@ -35,7 +35,7 @@ import OrdersPage from "../pages/user/Order";
 import OrderDetailsPage from "../pages/user/OrderDetails";
 import ProfilePage from "../pages/user/Profile";
 import ReviewsPage from "../pages/user/Review";
-import NotificationsPage from "../pages/user/Notification";
+import NotificationsPage from "../pages/user/Notifications";
 
 // ===================
 // Seller Pages
@@ -94,7 +94,7 @@ function AppRoutes() {
 
           <Route path="/orders" element={<OrdersPage />} />
 
-          <Route path="/orders/:id" element={<OrderDetailsPage />} />
+          <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
 
           <Route path="/profile" element={<ProfilePage />} />
 
