@@ -92,38 +92,65 @@ export const getSingleProduct = async (id) => {
   };
 };
 export const updateProduct = async (id, sellerId, data, files) => {
-  // Check product exists
+  // ==========================
+  // Check Product Exists
+  // ==========================
+
   const existingProduct = await productRepository.findById(id);
 
   if (!existingProduct) {
     throwError("Product not found", 404);
   }
 
-  // Check user exists
+  // ==========================
+  // Check User Exists
+  // ==========================
+
   const user = await userRepository.findUserById(sellerId);
 
   if (!user) {
     throwError("Unauthorized", 403);
   }
 
-  // Seller can only update their own product
+  // ==========================
+  // Seller Ownership Check
+  // Admin can update any product
+  // ==========================
+
   if (
     user.role === "SELLER" &&
-    existingProduct.seller.toString() !== sellerId
+    existingProduct.seller._id.toString() !== sellerId
   ) {
-    throwError("Only the product owner can update this product", 403);
+    throwError("You can only update your own product", 403);
   }
 
-  // Replace images if new images are uploaded
+  // ==========================
+  // Validate Category
+  // ==========================
+
+  if (data.category) {
+    const category = await categoryRepository.getSingleCategory(data.category);
+
+    if (!category) {
+      throwError("Category not found", 404);
+    }
+
+    data.category = category._id;
+  }
+
+  // ==========================
+  // Replace Images
+  // ==========================
+
   if (files && files.length > 0) {
-    // Delete old images from Cloudinary
+    // Delete old images
     for (const image of existingProduct.images) {
       await cloudinary.uploader.destroy(image.public_id);
     }
 
-    // Upload new images
     data.images = [];
 
+    // Upload new images
     for (const file of files) {
       const result = await uploadToCloudinary(file.buffer);
 
@@ -134,15 +161,27 @@ export const updateProduct = async (id, sellerId, data, files) => {
     }
   }
 
-  // Recalculate final price if needed
+  // ==========================
+  // Recalculate Final Price
+  // ==========================
+
   if (data.price || data.discountAmount) {
     const price = Number(data.price ?? existingProduct.price);
+
     const discount = Number(
       data.discountAmount ?? existingProduct.discountAmount,
     );
 
-    data.finalPrice = price - discount;
+    if (discount > price) {
+      throwError("Discount amount cannot exceed product price.", 400);
+    }
+
+    data.finalPrice = Math.max(price - discount, 0);
   }
+
+  // ==========================
+  // Update Product
+  // ==========================
 
   const updatedProduct = await productRepository.updateProduct(id, data);
 
@@ -195,32 +234,40 @@ export const getAllProduct = async (search, category, options) => {
   };
 };
 export const deleteProduct = async (productId, userId) => {
+  // Check user
   const user = await userRepository.findUserById(userId);
 
   if (!user) {
     throwError("Unauthorized user", 403);
   }
 
-  if (user.role === "USER") {
+  // Only Seller/Admin
+  if (!["SELLER", "ADMIN"].includes(user.role)) {
     throwError("Only sellers and admins can delete products", 403);
   }
 
+  // Check product
   const product = await productRepository.findById(productId);
 
   if (!product) {
     throwError("Product not found", 404);
   }
 
-  // Seller can delete only their own product
-  if (user.role === "SELLER" && product.seller.toString() !== userId) {
+  // Seller can delete only own product
+  if (user.role === "SELLER" && product.seller._id.toString() !== userId) {
     throwError("You can only delete your own products", 403);
   }
 
-  const deletedProduct = await productRepository.deleteProduct(productId);
+  // Delete images from Cloudinary
+  for (const image of product.images) {
+    await cloudinary.uploader.destroy(image.public_id);
+  }
+
+  // Delete product from database
+  await productRepository.deleteProduct(productId);
 
   return {
     message: "Product deleted successfully",
-    product: deletedProduct,
   };
 };
 export const getAdminProducts = async (
