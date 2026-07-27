@@ -8,38 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-function RevenueChart({ data }) {
-  const chartData = [
-    {
-      day: "Sunday",
-      revenue: data?.sunday || 0,
-    },
-    {
-      day: "Monday",
-      revenue: data?.monday || 0,
-    },
-    {
-      day: "Tuesday",
-      revenue: data?.tuesday || 0,
-    },
-    {
-      day: "Wednesday",
-      revenue: data?.wednesday || 0,
-    },
-    {
-      day: "Thursday",
-      revenue: data?.thursday || 0,
-    },
-    {
-      day: "Friday",
-      revenue: data?.friday || 0,
-    },
-    {
-      day: "Saturday",
-      revenue: data?.saturday || 0,
-    },
-  ];
-
+function RevenueChart({ data = [] }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="mb-5">
@@ -51,7 +20,7 @@ function RevenueChart({ data }) {
       </div>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData} margin={{ left: -12, right: 12 }}>
+        <BarChart data={data} margin={{ left: -12, right: 12 }}>
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="#F1F5F9"
@@ -72,12 +41,16 @@ function RevenueChart({ data }) {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(v) => (v >= 1000 ? `${v / 1000}k` : v)}
+            tickFormatter={(value) =>
+              value >= 1000 ? `$${value / 1000}k` : `$${value}`
+            }
           />
 
           <Tooltip
             formatter={(value) => [`$ ${value.toLocaleString()}`, "Revenue"]}
-            cursor={{ fill: "#F9FAFB" }}
+            cursor={{
+              fill: "#F9FAFB",
+            }}
             contentStyle={{
               background: "#FFFFFF",
               border: "1px solid #E5E7EB",
@@ -85,7 +58,10 @@ function RevenueChart({ data }) {
               fontSize: 13,
               boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
             }}
-            labelStyle={{ color: "#111827", fontWeight: 600 }}
+            labelStyle={{
+              color: "#111827",
+              fontWeight: 600,
+            }}
           />
 
           <Bar

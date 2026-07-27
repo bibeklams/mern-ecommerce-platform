@@ -167,3 +167,18 @@ export const changeProductStatus = async (req, res, next) => {
     next(error);
   }
 };
+export const getFeaturedProducts = async (req, res) => {
+  try {
+    const products = await productService.getFeaturedProducts();
+
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

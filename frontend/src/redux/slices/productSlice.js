@@ -8,23 +8,39 @@ import {
   updateProduct,
   deleteProduct,
   getAdminProducts,
+  getFeaturedProducts,
   toggleFeatured,
   changeProductStatus,
 } from "../thunks/productThunk";
 
 const initialState = {
+  // ==========================
   // Public
+  // ==========================
+
   products: [],
+  featuredProducts: [], // ✅ Trending Hot Products
   product: null,
 
+  // ==========================
   // Seller
+  // ==========================
+
   sellerProducts: [],
 
+  // ==========================
   // Admin
+  // ==========================
+
   adminProducts: [],
+
   currentPage: 1,
   totalPages: 1,
   totalProducts: 0,
+
+  // ==========================
+  // Common
+  // ==========================
 
   loading: false,
   error: null,
@@ -32,6 +48,7 @@ const initialState = {
 
 const productSlice = createSlice({
   name: "product",
+
   initialState,
 
   reducers: {
@@ -63,6 +80,27 @@ const productSlice = createSlice({
       })
 
       .addCase(getAllProducts.rejected, (state, action) => {
+        state.loading = false;
+
+        state.error = action.payload;
+      })
+
+      // =====================================
+      // Get Featured Products
+      // =====================================
+
+      .addCase(getFeaturedProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(getFeaturedProducts.fulfilled, (state, action) => {
+        state.loading = false;
+
+        state.featuredProducts = action.payload.products;
+      })
+
+      .addCase(getFeaturedProducts.rejected, (state, action) => {
         state.loading = false;
 
         state.error = action.payload;

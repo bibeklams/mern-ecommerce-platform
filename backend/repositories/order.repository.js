@@ -41,7 +41,15 @@ export const totalRevenue = () => {
   return Order.aggregate([
     {
       $match: {
-        paymentStatus: "PAID",
+        $or: [
+          {
+            paymentStatus: "PAID",
+          },
+          {
+            paymentMethod: "COD",
+            orderStatus: "DELIVERED",
+          },
+        ],
       },
     },
     {
@@ -55,25 +63,26 @@ export const totalRevenue = () => {
   ]);
 };
 export const getMonthlyRevenue = () => {
+  const start = new Date();
+
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+
   return Order.aggregate([
     {
       $match: {
         paymentStatus: "PAID",
+        createdAt: {
+          $gte: start,
+        },
       },
     },
     {
       $group: {
-        _id: {
-          month: { $month: "$createdAt" },
-        },
-        revenue: {
+        _id: null,
+        totalRevenue: {
           $sum: "$totalAmount",
         },
-      },
-    },
-    {
-      $sort: {
-        "_id.month": 1,
       },
     },
   ]);
@@ -141,19 +150,30 @@ export const getWeeklyRevenue = () => {
         paymentStatus: "PAID",
       },
     },
+
     {
       $group: {
         _id: {
           $dayOfWeek: "$createdAt",
         },
+
         revenue: {
           $sum: "$totalAmount",
         },
       },
     },
+
+    {
+      $project: {
+        _id: 0,
+        date: "$_id",
+        revenue: 1,
+      },
+    },
+
     {
       $sort: {
-        _id: 1,
+        date: 1,
       },
     },
   ]);

@@ -51,3 +51,12 @@ export const updateProduct = (id, data) => {
 export const deleteProduct = (id) => {
   return Product.findByIdAndDelete(id);
 };
+export const getFeaturedProducts = async () => {
+  const products = await Product.find({
+    isFeatured: true,
+  });
+
+  console.log("REPOSITORY FEATURED:", products);
+
+  return products;
+};

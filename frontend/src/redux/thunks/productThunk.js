@@ -119,6 +119,21 @@ export const getAdminProducts = createAsyncThunk(
     }
   },
 );
+export const getFeaturedProducts = createAsyncThunk(
+  "product/getFeaturedProducts",
+
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await productService.getFeaturedProducts();
+
+      console.log("Thunk response:", data);
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message);
+    }
+  },
+);
 export const toggleFeatured = createAsyncThunk(
   "product/toggleFeatured",
   async (id, { rejectWithValue }) => {

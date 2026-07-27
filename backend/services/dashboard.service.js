@@ -6,10 +6,18 @@ import * as orderRepository from "../repositories/order.repository.js";
 // Admin Dashboard
 // =======================
 export const getAdminDashboard = async () => {
+  // =======================
+  // Users
+  // =======================
+
   const totalUsers = await userRepository.countUsers({
     role: "USER",
     isVerified: true,
   });
+
+  // =======================
+  // Sellers
+  // =======================
 
   const totalSellers = await userRepository.countUsers({
     role: "SELLER",
@@ -20,9 +28,17 @@ export const getAdminDashboard = async () => {
     sellerStatus: "PENDING",
   });
 
+  // =======================
+  // Products
+  // =======================
+
   const totalProducts = await productRepository.countProducts();
 
   const lowStockProducts = await productRepository.lowStockProducts();
+
+  // =======================
+  // Orders
+  // =======================
 
   const totalOrders = await orderRepository.countOrders();
 
@@ -30,48 +46,104 @@ export const getAdminDashboard = async () => {
     orderStatus: "PENDING",
   });
 
-  const totalCancelledOrders = await orderRepository.countOrders({
-    orderStatus: "CANCELLED",
+  const totalProcessingOrders = await orderRepository.countOrders({
+    orderStatus: "PROCESSING",
+  });
+
+  const totalShippedOrders = await orderRepository.countOrders({
+    orderStatus: "SHIPPED",
   });
 
   const totalDeliveredOrders = await orderRepository.countOrders({
     orderStatus: "DELIVERED",
   });
 
+  const totalCancelledOrders = await orderRepository.countOrders({
+    orderStatus: "CANCELLED",
+  });
+
+  // =======================
+  // Revenue
+  // =======================
+
+  // Total Revenue
+
   const revenueResult = await orderRepository.totalRevenue();
+
   const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
+  // Today's Revenue
+
   const dailyRevenueResult = await orderRepository.getDailyRevenue();
+
   const dailyRevenue = dailyRevenueResult[0]?.totalRevenue || 0;
 
-  const weeklyRevenue = await orderRepository.getWeeklyRevenue();
+  // Current Month Revenue
 
-  const monthlyRevenue = await orderRepository.getMonthlyRevenue();
+  const monthlyRevenueResult = await orderRepository.getMonthlyRevenue();
+
+  const monthlyRevenue = monthlyRevenueResult[0]?.totalRevenue || 0;
+
+  // =======================
+  // Weekly Revenue Chart
+  // =======================
+
+  const weeklyRevenueResult = await orderRepository.getWeeklyRevenue();
+
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const weeklyRevenue = days.map((day, index) => {
+    const found = weeklyRevenueResult.find((item) => item.date === index + 1);
+
+    return {
+      day,
+      revenue: found?.revenue || 0,
+    };
+  });
+
+  // =======================
+  // Recent Orders
+  // =======================
 
   const recentOrders = await orderRepository.recentOrders();
 
+  // =======================
+  // Final Response
+  // =======================
+
   return {
+    // Users
+
     totalUsers,
     totalSellers,
     pendingSellers,
 
+    // Products
+
     totalProducts,
     lowStockProducts,
 
+    // Orders
+
     totalOrders,
     totalPendingOrders,
-    totalCancelledOrders,
+    totalProcessingOrders,
+    totalShippedOrders,
     totalDeliveredOrders,
+    totalCancelledOrders,
+
+    // Revenue
 
     totalRevenue,
     dailyRevenue,
-    weeklyRevenue,
     monthlyRevenue,
+    weeklyRevenue,
+
+    // Recent Orders
 
     recentOrders,
   };
 };
-
 // =======================
 // Seller Dashboard
 // =======================

@@ -80,7 +80,7 @@ function Dashboard() {
     recentOrders,
     lowStockProducts,
   } = adminDashboard;
-
+  console.log("weeklyRevenue:", weeklyRevenue);
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-8">
       {/* Dashboard Header */}

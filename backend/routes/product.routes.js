@@ -15,7 +15,7 @@ router.post(
 );
 
 router.get("/", productController.getAllProduct);
-
+router.get("/featured", productController.getFeaturedProducts);
 router.get(
   "/seller/my-products",
   protect,
@@ -60,4 +60,5 @@ router.patch(
   authorize("ADMIN"),
   productController.changeProductStatus,
 );
+
 export default router;

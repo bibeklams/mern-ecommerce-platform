@@ -52,7 +52,13 @@ export const getAdminProducts = async (params) => {
 
   return response.data;
 };
+export const getFeaturedProducts = async () => {
+  const response = await axios.get("/api/product/featured");
 
+  console.log("FEATURED API RESPONSE:", response.data);
+
+  return response.data;
+};
 export const toggleFeatured = async (id) => {
   const response = await api.patch(`/product/admin/${id}/feature`);
 
