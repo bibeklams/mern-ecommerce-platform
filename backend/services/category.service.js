@@ -63,20 +63,29 @@ export const getSingleCategory = async (id) => {
   };
 };
 export const updateOne = async (id, data, file) => {
-  const existingCategory = await categoryRepository.findOne({
-    _id: id,
-  });
+  const existingCategory = await categoryRepository.getSingleCategory(id);
 
   if (!existingCategory) {
     throwError("No category found", 404);
   }
 
-  if (file) {
-    const result = await uploadToCloudinary(file.buffer);
+  if (data.name) {
+    const duplicate = await categoryRepository.findOne({
+      name: data.name.trim(),
+      _id: { $ne: id },
+    });
 
+    if (duplicate) {
+      throwError("Category already exists", 400);
+    }
+  }
+
+  if (file) {
     if (existingCategory.image?.publicId) {
       await cloudinary.uploader.destroy(existingCategory.image.publicId);
     }
+
+    const result = await uploadToCloudinary(file.buffer);
 
     data.image = {
       url: result.secure_url,

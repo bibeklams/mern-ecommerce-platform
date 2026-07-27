@@ -37,11 +37,12 @@ export const getSingleCategory = async (req, res, next) => {
 };
 export const updateCategory = async (req, res, next) => {
   try {
-    const result = await categoryService.updateCategory(
+    const result = await categoryService.updateOne(
       req.params.id,
       req.body,
       req.file,
     );
+
     res.status(200).json({
       success: true,
       ...result,
