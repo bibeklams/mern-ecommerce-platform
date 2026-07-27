@@ -3,8 +3,8 @@ import {
   FaEllipsisVertical,
   FaStar,
   FaRegStar,
-  FaCheckCircle,
-  FaPauseCircle,
+  FaCircleCheck,
+  FaCirclePause,
   FaTrash,
 } from "react-icons/fa6";
 
@@ -33,21 +33,14 @@ function ProductActionMenu({
   return (
     <div className="relative" ref={menuRef}>
       {/* Menu Button */}
-
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="
-          p-2
-          rounded-lg
-          hover:bg-gray-100
-          transition
-        "
+        className="p-2 rounded-lg hover:bg-gray-100 transition"
       >
         <FaEllipsisVertical className="text-gray-600" />
       </button>
 
       {/* Dropdown */}
-
       {open && (
         <div
           className="
@@ -64,8 +57,7 @@ function ProductActionMenu({
             z-50
           "
         >
-          {/* Feature */}
-
+          {/* Featured */}
           <button
             onClick={() => {
               onToggleFeatured(product._id);
@@ -96,7 +88,6 @@ function ProductActionMenu({
           </button>
 
           {/* Status */}
-
           {product.status === "ACTIVE" ? (
             <button
               onClick={() => {
@@ -114,8 +105,7 @@ function ProductActionMenu({
                 transition
               "
             >
-              <FaPauseCircle className="text-yellow-600" />
-
+              <FaCirclePause className="text-yellow-600" />
               <span className="text-gray-700">Mark Inactive</span>
             </button>
           ) : (
@@ -135,14 +125,12 @@ function ProductActionMenu({
                 transition
               "
             >
-              <FaCheckCircle className="text-green-600" />
-
+              <FaCircleCheck className="text-green-600" />
               <span className="text-gray-700">Mark Active</span>
             </button>
           )}
 
           {/* Delete */}
-
           <button
             onClick={() => {
               if (
@@ -166,7 +154,7 @@ function ProductActionMenu({
             "
           >
             <FaTrash />
-            Delete Product
+            <span>Delete Product</span>
           </button>
         </div>
       )}

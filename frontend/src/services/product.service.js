@@ -46,7 +46,7 @@ export const deleteProduct = async (id) => {
 // ============================
 
 export const getAdminProducts = async (params) => {
-  const response = await api.get("/product/admin", {
+  const response = await api.get("/product/admin/all", {
     params,
   });
 
