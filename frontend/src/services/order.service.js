@@ -52,8 +52,11 @@ export const sellerUpdateOrderStatus = async ({ orderId, orderStatus }) => {
 // ==============================
 
 // Get All Orders
-export const getAllOrders = async () => {
-  const response = await api.get("/order");
+export const getAllOrders = async (params = {}) => {
+  const response = await api.get("/order", {
+    params,
+  });
+
   return response.data;
 };
 

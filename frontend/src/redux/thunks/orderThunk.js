@@ -1,13 +1,16 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as orderService from "../../services/order.service";
 
-// ==============================
-// User
-// ==============================
+/*
+==============================
+USER
+==============================
+*/
 
 // Create Order
 export const createOrder = createAsyncThunk(
   "order/createOrder",
+
   async (data, { rejectWithValue }) => {
     try {
       return await orderService.createOrder(data);
@@ -22,18 +25,22 @@ export const createOrder = createAsyncThunk(
 // My Orders
 export const getMyOrders = createAsyncThunk(
   "order/getMyOrders",
+
   async (page = 1, { rejectWithValue }) => {
     try {
       return await orderService.getMyOrders(page);
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch orders",
+      );
     }
   },
 );
 
-// Get Single Order
+// Single Order
 export const getSingleOrder = createAsyncThunk(
   "order/getSingleOrder",
+
   async (orderId, { rejectWithValue }) => {
     try {
       return await orderService.getSingleOrder(orderId);
@@ -48,6 +55,7 @@ export const getSingleOrder = createAsyncThunk(
 // Cancel Order
 export const cancelOrder = createAsyncThunk(
   "order/cancelOrder",
+
   async (orderId, { rejectWithValue }) => {
     try {
       return await orderService.cancelOrder(orderId);
@@ -59,13 +67,16 @@ export const cancelOrder = createAsyncThunk(
   },
 );
 
-// ==============================
-// Seller
-// ==============================
+/*
+==============================
+SELLER
+==============================
+*/
 
 // Seller Orders
 export const getSellerOrders = createAsyncThunk(
   "order/getSellerOrders",
+
   async (page = 1, { rejectWithValue }) => {
     try {
       return await orderService.getSellerOrders(page);
@@ -77,9 +88,10 @@ export const getSellerOrders = createAsyncThunk(
   },
 );
 
-// Seller Update Order Status
+// Seller Update Status
 export const sellerUpdateOrderStatus = createAsyncThunk(
   "order/sellerUpdateOrderStatus",
+
   async ({ orderId, orderStatus }, { rejectWithValue }) => {
     try {
       return await orderService.sellerUpdateOrderStatus({
@@ -94,16 +106,19 @@ export const sellerUpdateOrderStatus = createAsyncThunk(
   },
 );
 
-// ==============================
-// Admin
-// ==============================
+/*
+==============================
+ADMIN
+==============================
+*/
 
 // Get All Orders
 export const getAllOrders = createAsyncThunk(
   "order/getAllOrders",
-  async (_, { rejectWithValue }) => {
+
+  async (params = {}, { rejectWithValue }) => {
     try {
-      return await orderService.getAllOrders();
+      return await orderService.getAllOrders(params);
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch all orders",
@@ -112,9 +127,10 @@ export const getAllOrders = createAsyncThunk(
   },
 );
 
-// Admin Update Order Status
+// Admin Update Status
 export const adminUpdateOrderStatus = createAsyncThunk(
   "order/adminUpdateOrderStatus",
+
   async ({ orderId, orderStatus }, { rejectWithValue }) => {
     try {
       return await orderService.adminUpdateOrderStatus({
@@ -132,6 +148,7 @@ export const adminUpdateOrderStatus = createAsyncThunk(
 // Update Payment Status
 export const updatePaymentStatus = createAsyncThunk(
   "order/updatePaymentStatus",
+
   async ({ orderId, paymentStatus }, { rejectWithValue }) => {
     try {
       return await orderService.updatePaymentStatus({

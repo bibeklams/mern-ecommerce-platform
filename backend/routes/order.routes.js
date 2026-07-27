@@ -5,27 +5,28 @@ import { authorize } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
-/* ===========================
-   User Routes
-=========================== */
+/*
+=================================
+USER ROUTES
+=================================
+*/
 
-// Place order
+// Create Order
 router.post("/", protect, orderController.createOrder);
 
-// Get logged-in user's orders
+// User Orders
 router.get("/my-orders", protect, orderController.myOrders);
 
-// Get single order
-router.get("/:orderId", protect, orderController.getSingleOrder);
-
-// Cancel order
+// Cancel Order
 router.patch("/:orderId/cancel", protect, orderController.cancelOrder);
 
-/* ===========================
-   Seller Routes
-=========================== */
+/*
+=================================
+SELLER ROUTES
+=================================
+*/
 
-// Seller: View all their orders
+// Seller Get Orders
 router.get(
   "/seller/orders",
   protect,
@@ -33,7 +34,7 @@ router.get(
   orderController.getSellerOrders,
 );
 
-// Seller: Update order status
+// Seller Update Status
 router.patch(
   "/seller/orders/:orderId/status",
   protect,
@@ -41,14 +42,16 @@ router.patch(
   orderController.sellerUpdateOrderStatus,
 );
 
-/* ===========================
-   Admin Routes
-=========================== */
+/*
+=================================
+ADMIN ROUTES
+=================================
+*/
 
-// Get all orders
+// Admin Get All Orders
 router.get("/", protect, authorize("ADMIN"), orderController.getAllOrders);
 
-// Update order status
+// Admin Update Order Status
 router.patch(
   "/:orderId/status",
   protect,
@@ -56,12 +59,22 @@ router.patch(
   orderController.adminUpdateOrderStatus,
 );
 
-// Update payment status
+// Admin Update Payment Status
 router.patch(
   "/:orderId/payment-status",
   protect,
   authorize("ADMIN"),
   orderController.updatePaymentStatus,
 );
+
+/*
+=================================
+COMMON ROUTES
+=================================
+*/
+
+// Get Single Order
+// ALWAYS KEEP THIS LAST
+router.get("/:orderId", protect, orderController.getSingleOrder);
 
 export default router;

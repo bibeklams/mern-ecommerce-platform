@@ -13,10 +13,19 @@ import {
 } from "../thunks/orderThunk";
 
 const initialState = {
+  // User Orders
   orders: [],
-  sellerOrders: [], // <-- Add this
+
+  // Seller Orders
+  sellerOrders: [],
+
+  // Admin Orders
+  adminOrders: [],
+
+  // Single Order
   order: null,
 
+  // Pagination
   page: 1,
   pages: 1,
   total: 0,
@@ -24,6 +33,7 @@ const initialState = {
   loading: false,
   error: null,
 };
+
 const orderSlice = createSlice({
   name: "order",
 
@@ -42,19 +52,19 @@ const orderSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // ==========================
-      // Create Order
-      // ==========================
+      /*
+    ==========================
+    CREATE ORDER
+    ==========================
+    */
 
       .addCase(createOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
 
-      .addCase(createOrder.fulfilled, (state, action) => {
+      .addCase(createOrder.fulfilled, (state) => {
         state.loading = false;
-
-        state.orders.unshift(action.payload.order);
       })
 
       .addCase(createOrder.rejected, (state, action) => {
@@ -62,9 +72,11 @@ const orderSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ==========================
-      // My Orders
-      // ==========================
+      /*
+    ==========================
+    USER MY ORDERS
+    ==========================
+    */
 
       .addCase(getMyOrders.pending, (state) => {
         state.loading = true;
@@ -75,22 +87,29 @@ const orderSlice = createSlice({
         state.loading = false;
 
         state.orders = action.payload.orders;
+
         state.page = action.payload.page;
+
         state.pages = action.payload.pages;
+
         state.total = action.payload.total;
       })
 
       .addCase(getMyOrders.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Single Order
-      // ==========================
+      /*
+    ==========================
+    SINGLE ORDER
+    ==========================
+    */
 
       .addCase(getSingleOrder.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
@@ -102,15 +121,19 @@ const orderSlice = createSlice({
 
       .addCase(getSingleOrder.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Cancel Order
-      // ==========================
+      /*
+    ==========================
+    CANCEL ORDER
+    ==========================
+    */
 
       .addCase(cancelOrder.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
@@ -128,15 +151,19 @@ const orderSlice = createSlice({
 
       .addCase(cancelOrder.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Seller Orders
-      // ==========================
+      /*
+    ==========================
+    SELLER ORDERS
+    ==========================
+    */
 
       .addCase(getSellerOrders.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
@@ -146,21 +173,27 @@ const orderSlice = createSlice({
         state.sellerOrders = action.payload.orders;
 
         state.page = action.payload.page;
+
         state.pages = action.payload.pages;
+
         state.total = action.payload.total;
       })
 
       .addCase(getSellerOrders.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Seller Update Status
-      // ==========================
+      /*
+    ==========================
+    SELLER UPDATE STATUS
+    ==========================
+    */
 
       .addCase(sellerUpdateOrderStatus.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
@@ -178,42 +211,56 @@ const orderSlice = createSlice({
 
       .addCase(sellerUpdateOrderStatus.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Admin Orders
-      // ==========================
+      /*
+    ==========================
+    ADMIN GET ORDERS
+    ==========================
+    */
 
       .addCase(getAllOrders.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
       .addCase(getAllOrders.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.orders = action.payload.orders;
+        state.adminOrders = action.payload.orders;
+
+        state.page = action.payload.page;
+
+        state.pages = action.payload.pages;
+
+        state.total = action.payload.total;
       })
 
       .addCase(getAllOrders.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Admin Update Status
-      // ==========================
+      /*
+    ==========================
+    ADMIN UPDATE ORDER STATUS
+    ==========================
+    */
 
       .addCase(adminUpdateOrderStatus.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
       .addCase(adminUpdateOrderStatus.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.orders = state.orders.map((order) =>
+        state.adminOrders = state.adminOrders.map((order) =>
           order._id === action.payload.order._id ? action.payload.order : order,
         );
 
@@ -224,22 +271,26 @@ const orderSlice = createSlice({
 
       .addCase(adminUpdateOrderStatus.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       })
 
-      // ==========================
-      // Payment Status
-      // ==========================
+      /*
+    ==========================
+    ADMIN UPDATE PAYMENT STATUS
+    ==========================
+    */
 
       .addCase(updatePaymentStatus.pending, (state) => {
         state.loading = true;
+
         state.error = null;
       })
 
       .addCase(updatePaymentStatus.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.orders = state.orders.map((order) =>
+        state.adminOrders = state.adminOrders.map((order) =>
           order._id === action.payload.order._id ? action.payload.order : order,
         );
 
@@ -250,6 +301,7 @@ const orderSlice = createSlice({
 
       .addCase(updatePaymentStatus.rejected, (state, action) => {
         state.loading = false;
+
         state.error = action.payload;
       });
   },

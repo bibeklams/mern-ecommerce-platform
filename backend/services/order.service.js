@@ -124,11 +124,22 @@ export const getAllOrders = async (query) => {
     filter.orderStatus = query.orderStatus;
   }
 
-  const orders = await orderRepository.findAll(filter);
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const orders = await orderRepository.findAll(filter, {
+    page,
+    limit,
+  });
+
+  const total = await orderRepository.countOrders(filter);
 
   return {
-    message: "Order placed successfully.",
-    orderId: order._id,
+    message: "Orders fetched successfully.",
+    orders,
+    page,
+    pages: Math.ceil(total / limit),
+    total,
   };
 };
 export const myOrders = async (userId, query) => {
