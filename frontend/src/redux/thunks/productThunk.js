@@ -107,3 +107,39 @@ export const deleteProduct = createAsyncThunk(
     }
   },
 );
+export const getAdminProducts = createAsyncThunk(
+  "product/getAdminProducts",
+  async (params, { rejectWithValue }) => {
+    try {
+      return await productService.getAdminProducts(params);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch admin products",
+      );
+    }
+  },
+);
+export const toggleFeatured = createAsyncThunk(
+  "product/toggleFeatured",
+  async (id, { rejectWithValue }) => {
+    try {
+      return await productService.toggleFeatured(id);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update featured product",
+      );
+    }
+  },
+);
+export const changeProductStatus = createAsyncThunk(
+  "product/changeProductStatus",
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      return await productService.changeProductStatus(id, status);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update product status",
+      );
+    }
+  },
+);

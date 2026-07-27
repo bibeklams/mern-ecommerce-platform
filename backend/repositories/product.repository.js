@@ -13,6 +13,14 @@ export const findById = (id) => {
 export const findOne = (filter) => {
   return Product.findOne(filter).populate("category", "name");
 };
+export const findAdminProducts = (filter = {}, options = {}) => {
+  return Product.find(filter)
+    .populate("seller", "name email")
+    .populate("category", "name")
+    .sort(options.sort || { createdAt: -1 })
+    .skip(options.skip || 0)
+    .limit(options.limit || 10);
+};
 export const countProducts = (filter = {}) => {
   return Product.countDocuments(filter);
 };
@@ -36,9 +44,10 @@ export const updateProduct = (id, data) => {
   return Product.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
-  });
+  })
+    .populate("seller", "name email")
+    .populate("category", "name");
 };
-
 export const deleteProduct = (id) => {
   return Product.findByIdAndDelete(id);
 };

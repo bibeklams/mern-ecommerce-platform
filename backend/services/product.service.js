@@ -223,3 +223,130 @@ export const deleteProduct = async (productId, userId) => {
     product: deletedProduct,
   };
 };
+export const getAdminProducts = async (
+  search,
+  category,
+  status,
+  featured,
+  sort,
+  options,
+) => {
+  const filter = {};
+
+  // Search
+  if (search) {
+    filter.$or = [
+      {
+        name: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        brand: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  // Category
+  if (category) {
+    filter.category = category;
+  }
+
+  // Status
+  if (status) {
+    filter.status = status;
+  }
+
+  // Featured
+  if (featured !== undefined) {
+    filter.isFeatured = featured === "true";
+  }
+
+  // Sorting
+  let sortOption = { createdAt: -1 };
+
+  switch (sort) {
+    case "oldest":
+      sortOption = { createdAt: 1 };
+      break;
+
+    case "price-low":
+      sortOption = { finalPrice: 1 };
+      break;
+
+    case "price-high":
+      sortOption = { finalPrice: -1 };
+      break;
+
+    case "stock":
+      sortOption = { stock: -1 };
+      break;
+
+    default:
+      sortOption = { createdAt: -1 };
+  }
+
+  const products = await productRepository.findAdminProducts(filter, {
+    ...options,
+    sort: sortOption,
+  });
+
+  const totalProducts = await productRepository.countProducts(filter);
+
+  return {
+    products,
+    currentPage: options.page,
+    totalPages: Math.ceil(totalProducts / options.limit),
+    totalProducts,
+  };
+};
+export const toggleFeatured = async (productId) => {
+  const product = await productRepository.findById(productId);
+
+  if (!product) {
+    throwError("Product not found", 404);
+  }
+
+  const updatedProduct = await productRepository.updateProduct(productId, {
+    isFeatured: !product.isFeatured,
+  });
+
+  return {
+    message: `Product ${
+      updatedProduct.isFeatured ? "featured" : "removed from featured"
+    } successfully`,
+    product: updatedProduct,
+  };
+};
+export const changeProductStatus = async (productId, status) => {
+  const allowedStatus = ["ACTIVE", "INACTIVE", "OUT_OF_STOCK"];
+
+  if (!allowedStatus.includes(status)) {
+    throwError("Invalid product status", 400);
+  }
+
+  const product = await productRepository.findById(productId);
+
+  if (!product) {
+    throwError("Product not found", 404);
+  }
+
+  const updatedProduct = await productRepository.updateProduct(productId, {
+    status,
+  });
+
+  return {
+    message: "Product status updated successfully",
+    product: updatedProduct,
+  };
+};

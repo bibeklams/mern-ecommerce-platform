@@ -41,3 +41,28 @@ export const deleteProduct = async (id) => {
   const response = await api.delete(`/product/${id}`);
   return response.data;
 };
+// ============================
+// Admin Products
+// ============================
+
+export const getAdminProducts = async (params) => {
+  const response = await api.get("/product/admin", {
+    params,
+  });
+
+  return response.data;
+};
+
+export const toggleFeatured = async (id) => {
+  const response = await api.patch(`/product/admin/${id}/feature`);
+
+  return response.data;
+};
+
+export const changeProductStatus = async (id, status) => {
+  const response = await api.patch(`/product/admin/${id}/status`, {
+    status,
+  });
+
+  return response.data;
+};

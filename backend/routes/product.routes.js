@@ -39,4 +39,25 @@ router.delete(
   authorize("SELLER", "ADMIN"),
   productController.deleteProduct,
 );
+// Admin
+router.get(
+  "/admin/all",
+  protect,
+  authorize("ADMIN"),
+  productController.getAdminProducts,
+);
+
+router.patch(
+  "/admin/:id/feature",
+  protect,
+  authorize("ADMIN"),
+  productController.toggleFeatured,
+);
+
+router.patch(
+  "/admin/:id/status",
+  protect,
+  authorize("ADMIN"),
+  productController.changeProductStatus,
+);
 export default router;
