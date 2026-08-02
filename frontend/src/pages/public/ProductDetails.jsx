@@ -81,7 +81,7 @@ function ProductDetails() {
     try {
       await dispatch(addToCart(product._id)).unwrap();
 
-      navigate("/checkout");
+      navigate("/cart");
     } catch (error) {
       console.log(error);
     }
