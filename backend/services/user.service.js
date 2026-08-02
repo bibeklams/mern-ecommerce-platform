@@ -108,7 +108,13 @@ export const applyForSeller = async (id) => {
   const updatedUser = await userRepository.updateUser(id, {
     sellerStatus: "PENDING",
   });
-
+  await notificationService.createNotification({
+    user: userId,
+    title: "Seller Application Submitted",
+    message:
+      "Your seller application has been submitted successfully. Please wait for admin approval.",
+    type: "SELLER_APPLICATION",
+  });
   return {
     message:
       "Seller application submitted successfully. Waiting for admin approval.",
