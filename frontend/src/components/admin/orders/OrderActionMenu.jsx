@@ -70,7 +70,7 @@ function OrderActionMenu({ order, onStatusUpdate, onPaymentUpdate }) {
             overflow-hidden
           "
         >
-          {/* Status Header */}
+          {/* Order Status */}
           <div
             className="
               px-4
@@ -122,37 +122,41 @@ function OrderActionMenu({ order, onStatusUpdate, onPaymentUpdate }) {
             />
           )}
 
-          <div className="border-t border-gray-100 my-2" />
+          {/* Payment Section */}
+          {order.orderStatus !== "CANCELLED" && (
+            <>
+              <div className="border-t border-gray-100 my-2" />
 
-          {/* Payment */}
-          <div
-            className="
-              px-4
-              py-3
-              text-xs
-              font-semibold
-              text-gray-400
-              uppercase
-              bg-gray-50
-            "
-          >
-            Payment
-          </div>
+              <div
+                className="
+                  px-4
+                  py-3
+                  text-xs
+                  font-semibold
+                  text-gray-400
+                  uppercase
+                  bg-gray-50
+                "
+              >
+                Payment
+              </div>
 
-          {order.paymentStatus !== "PAID" && (
-            <MenuButton
-              icon={<FaCreditCard />}
-              label="Mark Paid"
-              onClick={() => handlePayment("PAID")}
-            />
-          )}
+              {order.paymentStatus === "PENDING" && (
+                <MenuButton
+                  icon={<FaCreditCard />}
+                  label="Mark Paid"
+                  onClick={() => handlePayment("PAID")}
+                />
+              )}
 
-          {order.paymentStatus === "PAID" && (
-            <MenuButton
-              icon={<FaCreditCard />}
-              label="Refund Payment"
-              onClick={() => handlePayment("REFUNDED")}
-            />
+              {order.paymentStatus === "PAID" && (
+                <MenuButton
+                  icon={<FaCreditCard />}
+                  label="Refund Payment"
+                  onClick={() => handlePayment("REFUNDED")}
+                />
+              )}
+            </>
           )}
         </div>
       )}
@@ -173,7 +177,6 @@ function MenuButton({ icon, label, onClick, danger = false }) {
         py-3
         text-sm
         transition
-
         ${
           danger
             ? "text-red-600 hover:bg-red-50"

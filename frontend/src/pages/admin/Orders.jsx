@@ -36,6 +36,16 @@ function Orders() {
   };
 
   const handlePaymentUpdate = (orderId, paymentStatus) => {
+    const order = adminOrders.find((item) => item._id === orderId);
+
+    if (!order) return;
+
+    // Cannot update payment for cancelled orders
+    if (order.orderStatus === "CANCELLED") {
+      alert("Payment status cannot be changed for a cancelled order.");
+      return;
+    }
+
     dispatch(
       updatePaymentStatus({
         orderId,
