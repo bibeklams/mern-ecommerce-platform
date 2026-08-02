@@ -170,7 +170,7 @@ export const changeProductStatus = async (req, res, next) => {
 export const getFeaturedProducts = async (req, res) => {
   try {
     const products = await productService.getFeaturedProducts();
-
+    console.log("CONTROLLER:", products);
     return res.status(200).json({
       success: true,
       products,

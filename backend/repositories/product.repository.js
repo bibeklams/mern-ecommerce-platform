@@ -52,11 +52,11 @@ export const deleteProduct = (id) => {
   return Product.findByIdAndDelete(id);
 };
 export const getFeaturedProducts = async () => {
-  const products = await Product.find({
+  return Product.find({
     isFeatured: true,
-  });
-
-  console.log("REPOSITORY FEATURED:", products);
-
-  return products;
+    status: "ACTIVE",
+  })
+    .populate("category", "name")
+    .sort({ createdAt: -1 })
+    .limit(8);
 };

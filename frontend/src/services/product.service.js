@@ -53,9 +53,7 @@ export const getAdminProducts = async (params) => {
   return response.data;
 };
 export const getFeaturedProducts = async () => {
-  const response = await axios.get("/api/product/featured");
-
-  console.log("FEATURED API RESPONSE:", response.data);
+  const response = await api.get("/product/featured");
 
   return response.data;
 };

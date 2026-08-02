@@ -375,15 +375,12 @@ export const toggleFeatured = async (productId) => {
     product: updatedProduct,
   };
 };
-export const getFeaturedProducts = async (req, res) => {
-  const products = await productService.getFeaturedProducts();
+export const getFeaturedProducts = async () => {
+  const products = await productRepository.getFeaturedProducts();
 
-  console.log("FEATURED FROM DB:", products);
+  console.log("SERVICE:", products);
 
-  res.status(200).json({
-    success: true,
-    products,
-  });
+  return products;
 };
 export const changeProductStatus = async (productId, status) => {
   const allowedStatus = ["ACTIVE", "INACTIVE", "OUT_OF_STOCK"];
