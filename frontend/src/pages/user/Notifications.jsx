@@ -11,12 +11,15 @@ import {
   markAllAsRead,
   deleteNotification,
   clearAllNotifications,
+  countNotification,
 } from "../../redux/thunks/notificationThunk";
 
 function Notifications() {
   const dispatch = useDispatch();
 
-  const { notifications, loading } = useSelector((state) => state.notification);
+  const { notifications = [], loading } = useSelector(
+    (state) => state.notification,
+  );
 
   useEffect(() => {
     dispatch(getMyNotifications());
@@ -31,6 +34,9 @@ function Notifications() {
 
     if (markAsRead.fulfilled.match(result)) {
       toast.success("Notification marked as read.");
+
+      // update navbar count
+      dispatch(countNotification());
     } else {
       toast.error(result.payload);
     }
@@ -45,6 +51,8 @@ function Notifications() {
 
     if (deleteNotification.fulfilled.match(result)) {
       toast.success("Notification deleted.");
+
+      dispatch(countNotification());
     } else {
       toast.error(result.payload);
     }
@@ -59,6 +67,8 @@ function Notifications() {
 
     if (markAllAsRead.fulfilled.match(result)) {
       toast.success("All notifications marked as read.");
+
+      dispatch(countNotification());
     } else {
       toast.error(result.payload);
     }
@@ -73,6 +83,8 @@ function Notifications() {
 
     if (clearAllNotifications.fulfilled.match(result)) {
       toast.success("All notifications cleared.");
+
+      dispatch(countNotification());
     } else {
       toast.error(result.payload);
     }
@@ -95,14 +107,24 @@ function Notifications() {
           <div className="flex gap-3">
             <button
               onClick={handleMarkAll}
-              className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium hover:bg-gray-50"
+              className="
+              px-4 py-2 rounded-lg 
+              border border-gray-200 
+              text-sm font-medium 
+              hover:bg-gray-50
+              "
             >
               Mark All Read
             </button>
 
             <button
               onClick={handleClearAll}
-              className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600"
+              className="
+              px-4 py-2 rounded-lg 
+              bg-red-500 text-white 
+              text-sm font-medium 
+              hover:bg-red-600
+              "
             >
               Clear All
             </button>

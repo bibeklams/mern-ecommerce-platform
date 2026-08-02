@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "motion/react";
-
+import { countNotification } from "../../redux/thunks/notificationThunk";
 import {
   FaSearch,
   FaHeart,
@@ -27,6 +27,9 @@ const Navbar = () => {
 
   // Optional chaining keeps this safe even if these slices don't exist yet.
   const cartCount = useSelector((state) => state.cart?.items?.length) || 0;
+  const notificationCount = useSelector(
+    (state) => state.notification?.count || 0,
+  );
   const wishlistCount =
     useSelector((state) => state.wishlist?.items?.length) || 0;
 
@@ -160,7 +163,7 @@ const Navbar = () => {
                 <IconBadge
                   to="/notifications"
                   icon={<FaBell size={15} />}
-                  count={0}
+                  count={notificationCount}
                   label="Notifications"
                 />
 
