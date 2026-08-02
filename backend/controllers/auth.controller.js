@@ -2,8 +2,6 @@ import * as authService from "../services/auth.service.js";
 
 export const register = async (req, res, next) => {
   try {
-    console.log(req.body);
-
     const result = await authService.register(req.body);
 
     res.status(201).json({
@@ -134,9 +132,16 @@ export const refreshToken = async (req, res, next) => {
   try {
     const result = await authService.refreshToken(req.cookies.refreshToken);
 
+    res.cookie("accessToken", result.accessToken, {
+      httpOnly: true,
+      secure: false, // true in production with HTTPS
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
     res.status(200).json({
       success: true,
-      accessToken: result.accessToken,
+      message: "Token refreshed successfully",
     });
   } catch (error) {
     next(error);

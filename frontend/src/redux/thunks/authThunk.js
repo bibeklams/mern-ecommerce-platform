@@ -72,7 +72,8 @@ export const refreshUser = createAsyncThunk(
   "auth/refreshUser",
   async (_, { rejectWithValue }) => {
     try {
-      return await authService.refreshToken();
+      const response = await api.post("/auth/refresh");
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Refresh failed");
     }

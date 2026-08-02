@@ -243,21 +243,21 @@ export const googleLogin = async ({ idToken, userAgent, ipAddress }) => {
 };
 export const refreshToken = async (token) => {
   if (!token) {
-    throwError("No token found", 401);
+    throwError("No refresh token found", 401);
   }
 
-  // Check if session exists
+  // Check session in Redis/DB
   const session = await sessionRepository.findSessionByRefreshToken(token);
 
   if (!session) {
-    throwError("Session not found", 401);
+    throwError("Session expired or invalid", 401);
   }
 
   let decoded;
 
   try {
     decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-  } catch {
+  } catch (error) {
     throwError("Invalid or expired refresh token", 403);
   }
 
@@ -272,9 +272,7 @@ export const refreshToken = async (token) => {
     role: user.role,
   });
 
-  return {
-    accessToken,
-  };
+  return accessToken;
 };
 
 export const forgotPassword = async ({ email }) => {
