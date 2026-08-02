@@ -158,7 +158,6 @@ export const getSellerDashboard = async (sellerId) => {
     status: "ACTIVE",
   });
 
-  // Better than checking status: "OUT_OF_STOCK"
   const outOfStockProducts = await productRepository.countProducts({
     seller: sellerId,
     stock: 0,
@@ -168,6 +167,8 @@ export const getSellerDashboard = async (sellerId) => {
     seller: sellerId,
     stock: { $lte: 5 },
   });
+
+  // Orders
 
   const totalOrders = await orderRepository.countOrders({
     "items.seller": sellerId,
@@ -188,7 +189,10 @@ export const getSellerDashboard = async (sellerId) => {
     orderStatus: "CANCELLED",
   });
 
+  // Revenue
+
   const revenueResult = await orderRepository.sellerRevenue(sellerId);
+
   const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
   const dailyRevenueResult =
@@ -196,7 +200,21 @@ export const getSellerDashboard = async (sellerId) => {
 
   const dailyRevenue = dailyRevenueResult[0]?.totalRevenue || 0;
 
-  const weeklyRevenue = await orderRepository.getSellerWeeklyRevenue(sellerId);
+  // Weekly Revenue
+
+  const weeklyRevenueResult =
+    await orderRepository.getSellerWeeklyRevenue(sellerId);
+
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const weeklyRevenue = days.map((day, index) => {
+    const found = weeklyRevenueResult.find((item) => item._id === index + 1);
+
+    return {
+      day,
+      revenue: found?.revenue || 0,
+    };
+  });
 
   return {
     totalProducts,

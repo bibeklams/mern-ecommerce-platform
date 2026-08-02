@@ -1,7 +1,6 @@
 import * as reviewRepository from "../repositories/review.repository.js";
 import * as productRepository from "../repositories/product.repository.js";
 import * as orderRepository from "../repositories/order.repository.js";
-import * as userRepository from "../repositories/user.repository.js";
 import { throwError } from "../utils/errorHandler.js";
 
 const updateProductRating = async (productId) => {
@@ -24,51 +23,89 @@ const updateProductRating = async (productId) => {
     totalReviews,
   });
 };
-export const createReview = async (userId, productId, data) => {
-  const user = await userRepository.findUserById(userId);
-  if (!user) {
-    throwError("No user found", 404);
-  }
-  const product = await productRepository.findById(productId);
-  if (!product) {
-    throwError("No product found", 404);
-  }
-  const order = await orderRepository.findOne({
-    user: userId,
-    "items.product": productId,
-    orderStatus: "DELIVERED",
-  });
-  if (!order) {
-    throwError("You can only review products you have purchased.", 400);
-  }
-  const alreadyReview = await reviewRepository.findOne({
-    user: userId,
-    product: productId,
-  });
-  if (alreadyReview) {
-    throwError("You have already reviewed this product.", 400);
-  }
-  const review = await reviewRepository.createReview({
-    user: userId,
-    product: productId,
-    ...data,
-  });
-  await updateProductRating(productId);
 
-  return {
-    message: "Review added successfully.",
-    review,
-  };
-};
-export const getProductReviews = async (productId) => {
-  // Check product
+// ======================================
+// Can Review
+// ======================================
+
+export const canReviewProduct = async (userId, productId) => {
   const product = await productRepository.findById(productId);
 
   if (!product) {
     throwError("Product not found.", 404);
   }
 
-  // Get reviews
+  const order = await orderRepository.findOne({
+    user: userId,
+    orderStatus: "DELIVERED",
+    items: {
+      $elemMatch: {
+        product: productId,
+      },
+    },
+  });
+
+  if (!order) {
+    return {
+      canReview: false,
+      reason: "NOT_PURCHASED",
+    };
+  }
+
+  const existingReview = await reviewRepository.findOne({
+    user: userId,
+    product: productId,
+  });
+
+  if (existingReview) {
+    return {
+      canReview: false,
+      reason: "ALREADY_REVIEWED",
+    };
+  }
+
+  return {
+    canReview: true,
+    reason: null,
+  };
+};
+
+// ======================================
+// Create Review
+// ======================================
+
+export const createReview = async (userId, productId, data) => {
+  const { canReview } = await canReviewProduct(userId, productId);
+
+  if (!canReview) {
+    throwError("You can only review delivered products once.", 400);
+  }
+
+  const review = await reviewRepository.createReview({
+    user: userId,
+    product: productId,
+    ...data,
+  });
+
+  await updateProductRating(productId);
+
+  return {
+    message: "Review submitted successfully.",
+    review,
+  };
+};
+
+// ======================================
+// Product Reviews
+// ======================================
+
+export const getProductReviews = async (productId) => {
+  const product = await productRepository.findById(productId);
+
+  if (!product) {
+    throwError("Product not found.", 404);
+  }
+
   const reviews = await reviewRepository.findAll({
     product: productId,
   });
@@ -77,32 +114,24 @@ export const getProductReviews = async (productId) => {
     reviews,
   };
 };
+
+// ======================================
+// Update Review
+// ======================================
+
 export const updateReview = async (userId, reviewId, data) => {
-  // Check user
-  const user = await userRepository.findUserById(userId);
-
-  if (!user) {
-    throwError("User not found.", 404);
-  }
-
-  // Check review
   const review = await reviewRepository.findById(reviewId);
 
   if (!review) {
     throwError("Review not found.", 404);
   }
 
-  // Check ownership
   if (review.user.toString() !== userId) {
     throwError("Unauthorized.", 403);
   }
 
-  // Update review
-  const updatedReview = await reviewRepository.updateReview(reviewId, {
-    ...data,
-  });
+  const updatedReview = await reviewRepository.updateReview(reviewId, data);
 
-  // Update product rating
   await updateProductRating(review.product);
 
   return {
@@ -110,38 +139,41 @@ export const updateReview = async (userId, reviewId, data) => {
     review: updatedReview,
   };
 };
+
+// ======================================
+// Delete Review
+// ======================================
+
 export const deleteReview = async (userId, reviewId) => {
-  // Check user
-  const user = await userRepository.findUserById(userId);
-
-  if (!user) {
-    throwError("User not found.", 404);
-  }
-
-  // Check review
   const review = await reviewRepository.findById(reviewId);
 
   if (!review) {
     throwError("Review not found.", 404);
   }
 
-  // Check ownership
   if (review.user.toString() !== userId) {
     throwError("Unauthorized.", 403);
   }
 
-  // Delete review
   await reviewRepository.deleteReview(reviewId);
 
-  // Update product rating
   await updateProductRating(review.product);
 
   return {
     message: "Review deleted successfully.",
   };
 };
+
+// ======================================
+// Seller Reviews
+// ======================================
+
 export const getSellerReviews = async (sellerId) => {
-  return await reviewRepository.findAll({
+  const reviews = await reviewRepository.findAll({
     seller: sellerId,
   });
+
+  return {
+    reviews,
+  };
 };

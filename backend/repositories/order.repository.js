@@ -1,5 +1,5 @@
 import Order from "../models/Order.js";
-
+import mongoose from "mongoose";
 export const createOrder = (data) => {
   return Order.create(data);
 };
@@ -88,32 +88,6 @@ export const getMonthlyRevenue = () => {
   ]);
 };
 
-export const sellerRevenue = (sellerId) => {
-  return Order.aggregate([
-    {
-      $match: {
-        paymentStatus: "PAID",
-        "items.seller": sellerId,
-      },
-    },
-    {
-      $unwind: "$items",
-    },
-    {
-      $match: {
-        "items.seller": sellerId,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        totalRevenue: {
-          $sum: "$items.totalPrice",
-        },
-      },
-    },
-  ]);
-};
 export const getDailyRevenue = () => {
   const today = new Date();
 
@@ -178,7 +152,40 @@ export const getWeeklyRevenue = () => {
     },
   ]);
 };
+export const sellerRevenue = (sellerId) => {
+  sellerId = new mongoose.Types.ObjectId(sellerId);
+
+  return Order.aggregate([
+    {
+      $match: {
+        paymentStatus: "PAID",
+      },
+    },
+
+    {
+      $unwind: "$items",
+    },
+
+    {
+      $match: {
+        "items.seller": sellerId,
+      },
+    },
+
+    {
+      $group: {
+        _id: null,
+
+        totalRevenue: {
+          $sum: "$items.totalPrice",
+        },
+      },
+    },
+  ]);
+};
 export const getSellerDailyRevenue = (sellerId) => {
+  sellerId = new mongoose.Types.ObjectId(sellerId);
+
   const today = new Date();
 
   today.setHours(0, 0, 0, 0);
@@ -193,9 +200,11 @@ export const getSellerDailyRevenue = (sellerId) => {
         paymentStatus: "PAID",
       },
     },
+
     {
       $unwind: "$items",
     },
+
     {
       $match: {
         "items.seller": sellerId,
@@ -205,6 +214,7 @@ export const getSellerDailyRevenue = (sellerId) => {
         },
       },
     },
+
     {
       $group: {
         _id: null,
@@ -216,30 +226,44 @@ export const getSellerDailyRevenue = (sellerId) => {
   ]);
 };
 export const getSellerWeeklyRevenue = (sellerId) => {
+  sellerId = new mongoose.Types.ObjectId(sellerId);
+
+  const startDate = new Date();
+
+  startDate.setDate(startDate.getDate() - 7);
+
   return Order.aggregate([
     {
       $match: {
         paymentStatus: "PAID",
+        createdAt: {
+          $gte: startDate,
+        },
       },
     },
+
     {
       $unwind: "$items",
     },
+
     {
       $match: {
         "items.seller": sellerId,
       },
     },
+
     {
       $group: {
         _id: {
           $dayOfWeek: "$createdAt",
         },
+
         revenue: {
           $sum: "$items.totalPrice",
         },
       },
     },
+
     {
       $sort: {
         _id: 1,
