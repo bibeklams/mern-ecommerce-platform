@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { FaUsers, FaUserCheck, FaStore } from "react-icons/fa";
 
 import UserSearch from "../../components/admin/users/UserSearch";
 import UserTable from "../../components/admin/users/UserTable";
@@ -13,15 +14,21 @@ import {
   unbanUser,
   suspendUser,
   unsuspendUser,
+  approveSeller,
+  rejectSeller,
 } from "../../redux/thunks/userThunk";
 
 function Users() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { users, loading, error, page, pages } = useSelector(
-    (state) => state.user,
-  );
+  const {
+    users = [],
+    loading,
+    error,
+    page,
+    pages,
+  } = useSelector((state) => state.user);
 
   const [search, setSearch] = useState("");
 
@@ -59,7 +66,20 @@ function Users() {
   }, [users, search, status]);
 
   // ==========================
-  // Actions
+  // Refresh Users
+  // ==========================
+
+  const refreshUsers = () => {
+    dispatch(
+      getAllUsers({
+        page: currentPage,
+        limit: 10,
+      }),
+    );
+  };
+
+  // ==========================
+  // Ban
   // ==========================
 
   const handleBan = async (id) => {
@@ -68,16 +88,15 @@ function Users() {
 
       toast.success(result.message);
 
-      dispatch(
-        getAllUsers({
-          page: currentPage,
-          limit: 10,
-        }),
-      );
+      refreshUsers();
     } catch (error) {
       toast.error(error);
     }
   };
+
+  // ==========================
+  // Unban
+  // ==========================
 
   const handleUnban = async (id) => {
     try {
@@ -85,16 +104,15 @@ function Users() {
 
       toast.success(result.message);
 
-      dispatch(
-        getAllUsers({
-          page: currentPage,
-          limit: 10,
-        }),
-      );
+      refreshUsers();
     } catch (error) {
       toast.error(error);
     }
   };
+
+  // ==========================
+  // Suspend
+  // ==========================
 
   const handleSuspend = async (id) => {
     try {
@@ -102,16 +120,15 @@ function Users() {
 
       toast.success(result.message);
 
-      dispatch(
-        getAllUsers({
-          page: currentPage,
-          limit: 10,
-        }),
-      );
+      refreshUsers();
     } catch (error) {
       toast.error(error);
     }
   };
+
+  // ==========================
+  // Unsuspend
+  // ==========================
 
   const handleUnsuspend = async (id) => {
     try {
@@ -119,12 +136,39 @@ function Users() {
 
       toast.success(result.message);
 
-      dispatch(
-        getAllUsers({
-          page: currentPage,
-          limit: 10,
-        }),
-      );
+      refreshUsers();
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  // ==========================
+  // Approve Seller
+  // ==========================
+
+  const handleApproveSeller = async (id) => {
+    try {
+      const result = await dispatch(approveSeller(id)).unwrap();
+
+      toast.success(result.message);
+
+      refreshUsers();
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  // ==========================
+  // Reject Seller
+  // ==========================
+
+  const handleRejectSeller = async (id) => {
+    try {
+      const result = await dispatch(rejectSeller(id)).unwrap();
+
+      toast.success(result.message);
+
+      refreshUsers();
     } catch (error) {
       toast.error(error);
     }
@@ -134,67 +178,62 @@ function Users() {
     setCurrentPage(newPage);
   };
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-24 text-sm text-red-500">
+        {error}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="
-        min-h-screen
-        bg-gray-50
-        p-6
-        space-y-6
-      "
-    >
+    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
       {/* Header */}
 
       <div>
-        <h1
-          className="
-            text-3xl
-            font-bold
-            text-gray-900
-          "
-        >
-          Users Management
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
 
-        <p
-          className="
-            mt-2
-            text-gray-500
-          "
-        >
-          Manage customers, account status and user activities.
+        <p className="text-sm text-gray-500 mt-1">
+          Manage users, accounts and seller applications.
         </p>
       </div>
 
       {/* Stats */}
 
-      <div
-        className="
-          grid
-          grid-cols-1
-          sm:grid-cols-3
-          gap-5
-        "
-      >
-        <div className="bg-white rounded-xl border p-5">
-          <p className="text-sm text-gray-500">Total Users</p>
-
-          <h2 className="text-2xl font-bold mt-2">{users.length}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">Total Users</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+              <FaUsers size={14} />
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mt-3">
+            {users.length}
+          </h2>
         </div>
 
-        <div className="bg-white rounded-xl border p-5">
-          <p className="text-sm text-gray-500">Active Users</p>
-
-          <h2 className="text-2xl font-bold mt-2 text-emerald-600">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">Active Users</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+              <FaUserCheck size={14} />
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold text-emerald-600 mt-3">
             {users.filter((user) => user.status === "ACTIVE").length}
           </h2>
         </div>
 
-        <div className="bg-white rounded-xl border p-5">
-          <p className="text-sm text-gray-500">Blocked Users</p>
-
-          <h2 className="text-2xl font-bold mt-2 text-red-600">
-            {users.filter((user) => user.status === "BANNED").length}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">Seller Requests</p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <FaStore size={14} />
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold text-blue-600 mt-3">
+            {users.filter((user) => user.sellerStatus === "PENDING").length}
           </h2>
         </div>
       </div>
@@ -217,6 +256,8 @@ function Users() {
         onUnban={handleUnban}
         onSuspend={handleSuspend}
         onUnsuspend={handleUnsuspend}
+        onApproveSeller={handleApproveSeller}
+        onRejectSeller={handleRejectSeller}
         onViewDetails={(id) => navigate(`/admin/users/${id}`)}
       />
 
