@@ -101,11 +101,14 @@ export const unSuspendUser = async (req, res, next) => {
 };
 export const applyForSeller = async (req, res, next) => {
   try {
-    const result = await userService.applyForSeller(req.user.id);
+    const result = await userService.applyForSeller(req.user._id);
+
     res.status(200).json({
       success: true,
+
       message: result.message,
-      data: result,
+
+      user: result.user,
     });
   } catch (error) {
     next(error);

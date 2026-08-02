@@ -90,16 +90,19 @@ export const applyForSeller = async (id) => {
     throwError("User not found", 404);
   }
 
-  if (user.role === "SELLER") {
-    throwError("User is already a seller", 400);
-  }
-
+  // ADMIN cannot apply
   if (user.role === "ADMIN") {
-    throwError("Admin cannot apply to become a seller", 400);
+    throwError("Admin cannot apply for seller", 403);
   }
 
+  // Already seller
+  if (user.role === "SELLER") {
+    throwError("You are already a seller", 400);
+  }
+
+  // Already pending
   if (user.sellerStatus === "PENDING") {
-    throwError("Seller application is already pending", 400);
+    throwError("Seller application already pending", 400);
   }
 
   const updatedUser = await userRepository.updateUser(id, {
@@ -108,7 +111,8 @@ export const applyForSeller = async (id) => {
 
   return {
     message:
-      "Seller application submitted successfully. Please wait for admin approval.",
+      "Seller application submitted successfully. Waiting for admin approval.",
+
     user: updatedUser,
   };
 };
