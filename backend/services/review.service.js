@@ -169,8 +169,23 @@ export const deleteReview = async (userId, reviewId) => {
 // ======================================
 
 export const getSellerReviews = async (sellerId) => {
+  const products = await productRepository.findAllProducts(
+    { seller: sellerId },
+    {
+      limit: 100000, // fetch all seller products
+    },
+  );
+
+  if (!products.length) {
+    return {
+      reviews: [],
+    };
+  }
+
+  const productIds = products.map((product) => product._id);
+
   const reviews = await reviewRepository.findAll({
-    seller: sellerId,
+    product: { $in: productIds },
   });
 
   return {

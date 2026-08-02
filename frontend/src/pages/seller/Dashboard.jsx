@@ -49,7 +49,8 @@ function Dashboard() {
   if (error) {
     return <div className="p-6 text-red-500">{error}</div>;
   }
-
+  console.log(sellerDashboard);
+  console.log(sellerDashboard?.weeklyRevenue);
   return (
     <main className="space-y-6">
       {/* Header */}

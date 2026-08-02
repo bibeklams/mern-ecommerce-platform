@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 import {
   createReview,
+  canReviewProduct,
   getProductReviews,
   getSellerReviews,
   updateReview,
@@ -11,7 +12,7 @@ import {
 const initialState = {
   reviews: [],
   sellerReviews: [],
-
+  canReview: false,
   loading: false,
   error: null,
   success: null,
@@ -52,6 +53,20 @@ const reviewSlice = createSlice({
       })
 
       .addCase(createReview.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+    builder
+      .addCase(canReviewProduct.pending, (state) => {
+        state.loading = true;
+      })
+
+      .addCase(canReviewProduct.fulfilled, (state, action) => {
+        state.loading = false;
+        state.canReview = action.payload.canReview;
+      })
+
+      .addCase(canReviewProduct.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

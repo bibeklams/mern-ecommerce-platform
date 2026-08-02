@@ -204,6 +204,7 @@ export const getSellerDashboard = async (sellerId) => {
 
   const weeklyRevenueResult =
     await orderRepository.getSellerWeeklyRevenue(sellerId);
+  console.log("Weekly Revenue Result:", weeklyRevenueResult);
 
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 

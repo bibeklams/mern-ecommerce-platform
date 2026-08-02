@@ -18,6 +18,18 @@ export const createReview = createAsyncThunk(
     }
   },
 );
+export const canReviewProduct = createAsyncThunk(
+  "review/canReviewProduct",
+  async (productId, { rejectWithValue }) => {
+    try {
+      return await reviewService.canReviewProduct(productId);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to check review permission",
+      );
+    }
+  },
+);
 
 // ======================================
 // Get Product Reviews

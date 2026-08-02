@@ -4,6 +4,10 @@ export const createReview = async (productId, data) => {
   const response = await api.post(`/review/${productId}`, data);
   return response.data;
 };
+export const canReviewProduct = async (productId) => {
+  const response = await api.get(`/review/can-review/${productId}`);
+  return response.data;
+};
 
 export const getProductReviews = async (productId) => {
   const response = await api.get(`/review/product/${productId}`);
