@@ -4,6 +4,7 @@ import * as categoryRepository from "../repositories/category.repository.js";
 import { uploadToCloudinary } from "../utils/cloudinaryHandler.js";
 import { throwError } from "../utils/errorHandler.js";
 import cloudinary from "../config/cloudinary.js";
+import redis from "../config/redis.js";
 
 export const addProduct = async (data, sellerId, files) => {
   // Check seller exists
@@ -57,12 +58,39 @@ export const addProduct = async (data, sellerId, files) => {
   // Save product
   const product = await productRepository.createProduct(productData);
 
+  // Seller products cache
+  const sellerKeys = await redis.keys(`seller-products:${sellerId}:*`);
+
+  if (sellerKeys.length) {
+    await redis.del(...sellerKeys);
+  }
+
+  // Public products cache
+  const productKeys = await redis.keys("products:*");
+
+  if (productKeys.length) {
+    await redis.del(...productKeys);
+  }
+
+  // Featured products cache
+  if (product.isFeatured) {
+    await redis.del("featured-products");
+  }
+
   return {
     message: "Product created successfully",
     product,
   };
 };
 export const getAllSellerProduct = async (sellerId, options) => {
+  const cacheKey = `seller-products:${sellerId}:page:${options.page}:limit:${options.limit}`;
+
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
+  }
+
   const products = await productRepository.findAllProducts(
     { seller: sellerId },
     options,
@@ -72,24 +100,47 @@ export const getAllSellerProduct = async (sellerId, options) => {
     seller: sellerId,
   });
 
-  const totalPages = Math.ceil(totalProducts / options.limit);
-
-  return {
+  const result = {
     products,
-    totalPages,
+    totalPages: Math.ceil(totalProducts / options.limit),
     currentPage: options.page,
   };
+
+  await redis.set(
+    cacheKey,
+    JSON.stringify(result),
+    "EX",
+    600, // 10 minutes
+  );
+
+  return result;
 };
 export const getSingleProduct = async (id) => {
+  const cacheKey = `product:${id}`;
+
+  // 1. Check Redis first
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
+  }
+
+  // 2. Redis miss -> MongoDB
   const product = await productRepository.findById(id);
 
   if (!product) {
     throwError("No product found", 404);
   }
 
-  return {
+  const result = {
     product: product.toObject(),
   };
+
+  // 3. Save to Redis
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+
+  // 4. Return data
+  return result;
 };
 export const updateProduct = async (id, sellerId, data, files) => {
   // ==========================
@@ -185,13 +236,46 @@ export const updateProduct = async (id, sellerId, data, files) => {
 
   const updatedProduct = await productRepository.updateProduct(id, data);
 
+  // ==================================================
+  // Redis Cache Invalidation
+  // ==================================================
+
+  // 1. Delete single product cache
+  await redis.del(`product:${id}`);
+
+  // 2. Delete seller products cache
+  const sellerKeys = await redis.keys(`seller-products:${sellerId}:*`);
+
+  if (sellerKeys.length) {
+    await redis.del(...sellerKeys);
+  }
+
+  // 3. Delete featured products cache
+  await redis.del("featured-products");
+
+  // 4. Delete public products cache
+  const productKeys = await redis.keys("products:*");
+
+  if (productKeys.length) {
+    await redis.del(...productKeys);
+  }
+
+  // ==================================================
+
   return {
     message: "Product updated successfully",
     product: updatedProduct,
   };
 };
 export const getAllProduct = async (search, category, options) => {
-  const filter = {};
+  const cacheKey = `products:search:${search || "all"}:category:${category || "all"}:page:${options.page}:limit:${options.limit}`;
+  const cache = await redis.get(cacheKey);
+  if (cache) {
+    return JSON.parse(cache);
+  }
+  const filter = {
+    status: "ACTIVE",
+  };
 
   if (search) {
     filter.$or = [
@@ -226,27 +310,34 @@ export const getAllProduct = async (search, category, options) => {
 
   const totalPages = Math.ceil(totalProducts / options.limit);
 
-  return {
+  const result = {
     products,
     currentPage: options.page,
     totalPages,
     totalProducts,
   };
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+  return result;
 };
 export const deleteProduct = async (productId, userId) => {
-  // Check user
+  // ==========================
+  // Check User
+  // ==========================
+
   const user = await userRepository.findUserById(userId);
 
   if (!user) {
     throwError("Unauthorized user", 403);
   }
 
-  // Only Seller/Admin
   if (!["SELLER", "ADMIN"].includes(user.role)) {
     throwError("Only sellers and admins can delete products", 403);
   }
 
-  // Check product
+  // ==========================
+  // Check Product
+  // ==========================
+
   const product = await productRepository.findById(productId);
 
   if (!product) {
@@ -258,13 +349,45 @@ export const deleteProduct = async (productId, userId) => {
     throwError("You can only delete your own products", 403);
   }
 
-  // Delete images from Cloudinary
+  // ==========================
+  // Delete Images
+  // ==========================
+
   for (const image of product.images) {
     await cloudinary.uploader.destroy(image.public_id);
   }
 
-  // Delete product from database
+  // ==========================
+  // Delete Product
+  // ==========================
+
   await productRepository.deleteProduct(productId);
+
+  // ==========================
+  // Clear Redis Cache
+  // ==========================
+
+  // Single product
+  await redis.del(`product:${productId}`);
+
+  // Featured products
+  await redis.del("featured-products");
+
+  // Seller products
+  const sellerId = product.seller._id.toString();
+
+  const sellerKeys = await redis.keys(`seller-products:${sellerId}:*`);
+
+  if (sellerKeys.length) {
+    await redis.del(...sellerKeys);
+  }
+
+  // Public products
+  const productKeys = await redis.keys("products:*");
+
+  if (productKeys.length) {
+    await redis.del(...productKeys);
+  }
 
   return {
     message: "Product deleted successfully",
@@ -368,6 +491,34 @@ export const toggleFeatured = async (productId) => {
     isFeatured: !product.isFeatured,
   });
 
+  // ==========================
+  // Clear Redis Cache
+  // ==========================
+
+  // Single product cache
+  await redis.del(`product:${productId}`);
+
+  // Featured products cache
+  await redis.del("featured-products");
+
+  // Seller products cache
+  const sellerKeys = await redis.keys(
+    `seller-products:${updatedProduct.seller._id || updatedProduct.seller}:*`,
+  );
+
+  if (sellerKeys.length) {
+    await redis.del(...sellerKeys);
+  }
+
+  // Public products cache
+  const productKeys = await redis.keys("products:*");
+
+  if (productKeys.length) {
+    await redis.del(...productKeys);
+  }
+
+  // ==========================
+
   return {
     message: `Product ${
       updatedProduct.isFeatured ? "featured" : "removed from featured"
@@ -376,9 +527,17 @@ export const toggleFeatured = async (productId) => {
   };
 };
 export const getFeaturedProducts = async () => {
+  const cacheKey = "featured-products";
+
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
+  }
+
   const products = await productRepository.getFeaturedProducts();
 
-  console.log("SERVICE:", products);
+  await redis.set(cacheKey, JSON.stringify(products), "EX", 600);
 
   return products;
 };
@@ -398,6 +557,29 @@ export const changeProductStatus = async (productId, status) => {
   const updatedProduct = await productRepository.updateProduct(productId, {
     status,
   });
+
+  // Single product cache
+  await redis.del(`product:${productId}`);
+
+  // Seller products cache
+  const sellerId =
+    updatedProduct.seller._id?.toString() || updatedProduct.seller.toString();
+
+  const sellerKeys = await redis.keys(`seller-products:${sellerId}:*`);
+
+  if (sellerKeys.length) {
+    await redis.del(...sellerKeys);
+  }
+
+  // Public products cache
+  const productKeys = await redis.keys("products:*");
+
+  if (productKeys.length) {
+    await redis.del(...productKeys);
+  }
+
+  // Featured products cache
+  await redis.del("featured-products");
 
   return {
     message: "Product status updated successfully",

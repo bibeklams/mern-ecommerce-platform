@@ -338,8 +338,6 @@ export const verifyResetOtp = async ({ email, otp }) => {
 
     throwError("OTP has expired", 400);
   }
-  console.log("Expires At:", otpDoc.expiresAt);
-  console.log("Current Time:", new Date());
   // Compare OTP
   const isMatch = await bcrypt.compare(otp, otpDoc.otp);
 
