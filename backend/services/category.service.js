@@ -2,6 +2,7 @@ import * as categoryRepository from "../repositories/category.repository.js";
 import { throwError } from "../utils/errorHandler.js";
 import { uploadToCloudinary } from "../utils/cloudinaryHandler.js";
 import cloudinary from "../config/cloudinary.js";
+import redis from "../config/redis.js";
 
 export const addCategory = async (data, file) => {
   const { name, description } = data;
@@ -40,27 +41,53 @@ export const addCategory = async (data, file) => {
       publicId,
     },
   });
-
+  await redis.del(`categories`);
   return {
     message: "Category created successfully.",
     category,
   };
 };
 export const getAllCategory = async () => {
+  const cacheKey = "categories";
+
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
+  }
+
   const categories = await categoryRepository.getAllCategory();
-  return {
+
+  const result = {
     categories,
-    // categories: categories.toObject(),
   };
+
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+
+  return result;
 };
 export const getSingleCategory = async (id) => {
-  const category = await categoryRepository.getSingleCategory(id);
-  if (!category) {
-    throwError("No category found", 400);
+  const cacheKey = `category:${id}`;
+
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
   }
-  return {
+
+  const category = await categoryRepository.getSingleCategory(id);
+
+  if (!category) {
+    throwError("No category found", 404);
+  }
+
+  const result = {
     category,
   };
+
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+
+  return result;
 };
 export const updateOne = async (id, data, file) => {
   const existingCategory = await categoryRepository.getSingleCategory(id);
@@ -95,6 +122,10 @@ export const updateOne = async (id, data, file) => {
 
   const updatedCategory = await categoryRepository.updateOne(id, data);
 
+  // Clear caches
+  await redis.del(`category:${id}`);
+  await redis.del("categories");
+
   return {
     message: "Category successfully updated",
     category: updatedCategory,
@@ -113,7 +144,8 @@ export const deleteCategory = async (id) => {
   }
 
   await categoryRepository.deleteOne(id);
-
+  await redis.del(`category:${id}`);
+  await redis.del(`categories`);
   return {
     message: "Category deleted successfully",
   };
