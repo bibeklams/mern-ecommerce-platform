@@ -76,7 +76,12 @@ export const addProduct = async (data, sellerId, files) => {
   if (product.isFeatured) {
     await redis.del("featured-products");
   }
+  const adminProductKeys = await redis.keys("admin-products:*");
 
+  if (adminProductKeys.length) {
+    await redis.del(...adminProductKeys);
+  }
+  await redis.del("admin-dashboard");
   return {
     message: "Product created successfully",
     product,
@@ -252,14 +257,19 @@ export const updateProduct = async (id, sellerId, data, files) => {
 
   // 3. Delete featured products cache
   await redis.del("featured-products");
-
+  await redis.del(`seller-dashboard:${sellerId}`);
   // 4. Delete public products cache
   const productKeys = await redis.keys("products:*");
 
   if (productKeys.length) {
     await redis.del(...productKeys);
   }
+  const adminProductKeys = await redis.keys("admin-products:*");
 
+  if (adminProductKeys.length) {
+    await redis.del(...adminProductKeys);
+  }
+  await redis.del("admin-dashboard");
   // ==================================================
 
   return {
@@ -366,6 +376,7 @@ export const deleteProduct = async (productId, userId) => {
   // ==========================
   // Clear Redis Cache
   // ==========================
+  const sellerId = product.seller._id.toString();
 
   // Single product
   await redis.del(`product:${productId}`);
@@ -373,9 +384,10 @@ export const deleteProduct = async (productId, userId) => {
   // Featured products
   await redis.del("featured-products");
 
-  // Seller products
-  const sellerId = product.seller._id.toString();
+  // Seller dashboard
+  await redis.del(`seller-dashboard:${sellerId}`);
 
+  // Seller products
   const sellerKeys = await redis.keys(`seller-products:${sellerId}:*`);
 
   if (sellerKeys.length) {
@@ -389,6 +401,15 @@ export const deleteProduct = async (productId, userId) => {
     await redis.del(...productKeys);
   }
 
+  // Admin products
+  const adminProductKeys = await redis.keys("admin-products:*");
+
+  if (adminProductKeys.length) {
+    await redis.del(...adminProductKeys);
+  }
+
+  // Admin dashboard
+  await redis.del("admin-dashboard");
   return {
     message: "Product deleted successfully",
   };
@@ -401,6 +422,21 @@ export const getAdminProducts = async (
   sort,
   options,
 ) => {
+  const cacheKey =
+    `admin-products:` +
+    `search:${search || "all"}:` +
+    `category:${category || "all"}:` +
+    `status:${status || "all"}:` +
+    `featured:${featured ?? "all"}:` +
+    `sort:${sort || "latest"}:` +
+    `page:${options.page}:` +
+    `limit:${options.limit}`;
+
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
+  }
   const filter = {};
 
   // Search
@@ -473,12 +509,14 @@ export const getAdminProducts = async (
 
   const totalProducts = await productRepository.countProducts(filter);
 
-  return {
+  const result = {
     products,
     currentPage: options.page,
     totalPages: Math.ceil(totalProducts / options.limit),
     totalProducts,
   };
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+  return result;
 };
 export const toggleFeatured = async (productId) => {
   const product = await productRepository.findById(productId);
@@ -516,7 +554,13 @@ export const toggleFeatured = async (productId) => {
   if (productKeys.length) {
     await redis.del(...productKeys);
   }
+  const adminProductKeys = await redis.keys("admin-products:*");
 
+  if (adminProductKeys.length) {
+    await redis.del(...adminProductKeys);
+  }
+  // Admin dashboard
+  await redis.del("admin-dashboard");
   // ==========================
 
   return {
@@ -580,7 +624,12 @@ export const changeProductStatus = async (productId, status) => {
 
   // Featured products cache
   await redis.del("featured-products");
+  const adminProductKeys = await redis.keys("admin-products:*");
 
+  if (adminProductKeys.length) {
+    await redis.del(...adminProductKeys);
+  }
+  await redis.del("admin-dashboard");
   return {
     message: "Product status updated successfully",
     product: updatedProduct,

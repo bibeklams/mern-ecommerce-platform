@@ -149,6 +149,11 @@ export const getAdminDashboard = async () => {
 // =======================
 
 export const getSellerDashboard = async (sellerId) => {
+  const cacheKey = `seller-dashboard:${sellerId}`;
+  const cache = await redis.get(cacheKey);
+  if (cache) {
+    return JSON.parse(cache);
+  }
   const totalProducts = await productRepository.countProducts({
     seller: sellerId,
   });
@@ -217,7 +222,7 @@ export const getSellerDashboard = async (sellerId) => {
     };
   });
 
-  return {
+  const result = {
     totalProducts,
     activeProducts,
     outOfStockProducts,
@@ -232,4 +237,6 @@ export const getSellerDashboard = async (sellerId) => {
     dailyRevenue,
     weeklyRevenue,
   };
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+  return result;
 };
