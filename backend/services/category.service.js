@@ -42,6 +42,7 @@ export const addCategory = async (data, file) => {
     },
   });
   await redis.del(`categories`);
+  await redis.del("admin-dashboard");
   return {
     message: "Category created successfully.",
     category,
@@ -125,6 +126,7 @@ export const updateOne = async (id, data, file) => {
   // Clear caches
   await redis.del(`category:${id}`);
   await redis.del("categories");
+  await redis.del("admin-dashboard");
 
   return {
     message: "Category successfully updated",
@@ -146,6 +148,7 @@ export const deleteCategory = async (id) => {
   await categoryRepository.deleteOne(id);
   await redis.del(`category:${id}`);
   await redis.del(`categories`);
+  await redis.del("admin-dashboard");
   return {
     message: "Category deleted successfully",
   };

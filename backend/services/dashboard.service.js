@@ -1,7 +1,7 @@
 import * as userRepository from "../repositories/user.repository.js";
 import * as productRepository from "../repositories/product.repository.js";
 import * as orderRepository from "../repositories/order.repository.js";
-
+import redis from "../config/redis.js";
 // =======================
 // Admin Dashboard
 // =======================
