@@ -1,10 +1,22 @@
 import * as userRepository from "../repositories/user.repository.js";
 import * as notificationService from "./notification.service.js";
 import { throwError } from "../utils/errorHandler.js";
-
+import redis from "../config/redis.js";
 export const getAllUsers = async (query) => {
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
+
+  const cacheKey =
+    `users:` +
+    `page:${page}:` +
+    `limit:${limit}:` +
+    `search:${query.search || "all"}`;
+
+  const cache = await redis.get(cacheKey);
+
+  if (cache) {
+    return JSON.parse(cache);
+  }
 
   const filter = {
     role: "USER",
@@ -15,41 +27,67 @@ export const getAllUsers = async (query) => {
 
   const total = await userRepository.countUsers(filter);
 
-  return {
+  const result = {
     users,
     page,
     pages: Math.ceil(total / limit),
     total,
   };
+
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+
+  return result;
 };
 
 export const getAllSellers = async () => {
+  const cacheKey = `sellers`;
+  const cache = await redis.get(cacheKey);
+  if (cache) {
+    return JSON.parse(cache);
+  }
   const users = await userRepository.findAllUsers({
     role: "SELLER",
     isVerified: true,
   });
-
-  return {
+  const result = {
     users,
   };
+
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+
+  return result;
 };
 export const getSingleUser = async (id) => {
+  const cacheKey = `user:${id}`;
+  const cache = await redis.get(cacheKey);
+  if (cache) {
+    return JSON.parse(cache);
+  }
   const user = await userRepository.findUserById(id);
   if (!user) {
     throwError("No user found", 404);
   }
-  return {
+  const result = {
     user,
   };
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+  return result;
 };
 export const getProfile = async (id) => {
+  const cacheKey = `profile:${id}`;
+  const cache = await redis.get(cacheKey);
+  if (cache) {
+    return JOSN.parse(cache);
+  }
   const user = await userRepository.findUserById(id);
   if (!user) {
     throwError("No user found", 404);
   }
-  return {
+  const result = {
     user,
   };
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+  return result;
 };
 const updateUserStatus = async (id, status) => {
   const user = await userRepository.findUserById(id);
@@ -61,10 +99,19 @@ const updateUserStatus = async (id, status) => {
   user.status = status;
   await user.save();
 
-  return {
+  const result = {
     message: `User ${status.toLowerCase()} successfully`,
     user,
   };
+  await redis.del(`profile:${id}`);
+  await redis.del(`sellers`);
+  await redis.del(`user:${id}`);
+  const usersKey = await redis.keys(`users:*`);
+  if (usersKey.length) {
+    await redis.del(...usersKey);
+  }
+  await redis.del(`admin-dashboard`);
+  return result;
 };
 
 export const banUser = (id) => {
@@ -108,17 +155,30 @@ export const applyForSeller = async (id) => {
   const updatedUser = await userRepository.updateUser(id, {
     sellerStatus: "PENDING",
   });
+
   await notificationService.createNotification({
-    user: userId,
+    user: id,
     title: "Seller Application Submitted",
     message:
       "Your seller application has been submitted successfully. Please wait for admin approval.",
     type: "SELLER_APPLICATION",
   });
+
+  // Redis
+  await redis.del(`profile:${id}`);
+  await redis.del(`user:${id}`);
+
+  const usersKeys = await redis.keys("users:*");
+
+  if (usersKeys.length) {
+    await redis.del(...usersKeys);
+  }
+
+  await redis.del("admin-dashboard");
+
   return {
     message:
       "Seller application submitted successfully. Waiting for admin approval.",
-
     user: updatedUser,
   };
 };
@@ -161,7 +221,19 @@ export const approveSeller = async (id) => {
     message: "Congratulations! Your seller account has been approved.",
     type: "SELLER",
   });
+  // Redis
+  // Redis
+  await redis.del(`profile:${id}`);
+  await redis.del(`user:${id}`);
 
+  const usersKeys = await redis.keys("users:*");
+
+  if (usersKeys.length) {
+    await redis.del(...usersKeys);
+  }
+
+  await redis.del("sellers");
+  await redis.del("admin-dashboard");
   return {
     message: "Seller application approved successfully.",
     user: updatedUser,
@@ -203,6 +275,17 @@ export const rejectSeller = async (id) => {
       "Unfortunately, your seller application has been rejected. Please contact support or apply again later if applicable.",
     type: "SELLER",
   });
+  // Redis
+  await redis.del(`profile:${id}`);
+  await redis.del(`user:${id}`);
+
+  const usersKeys = await redis.keys("users:*");
+
+  if (usersKeys.length) {
+    await redis.del(...usersKeys);
+  }
+
+  await redis.del("admin-dashboard");
 
   return {
     message: "Seller application rejected successfully.",
