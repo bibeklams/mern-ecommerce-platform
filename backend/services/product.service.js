@@ -82,6 +82,7 @@ export const addProduct = async (data, sellerId, files) => {
     await redis.del(...adminProductKeys);
   }
   await redis.del("admin-dashboard");
+  await redis.del(`seller-dashboard:${sellerId}`);
   return {
     message: "Product created successfully",
     product,
@@ -257,7 +258,6 @@ export const updateProduct = async (id, sellerId, data, files) => {
 
   // 3. Delete featured products cache
   await redis.del("featured-products");
-  await redis.del(`seller-dashboard:${sellerId}`);
   // 4. Delete public products cache
   const productKeys = await redis.keys("products:*");
 
@@ -270,6 +270,7 @@ export const updateProduct = async (id, sellerId, data, files) => {
     await redis.del(...adminProductKeys);
   }
   await redis.del("admin-dashboard");
+  await redis.del(`seller-dashboard:${sellerId}`);
   // ==================================================
 
   return {
@@ -410,6 +411,7 @@ export const deleteProduct = async (productId, userId) => {
 
   // Admin dashboard
   await redis.del("admin-dashboard");
+  await redis.del(`seller-dashboard:${sellerId}`);
   return {
     message: "Product deleted successfully",
   };
@@ -561,6 +563,7 @@ export const toggleFeatured = async (productId) => {
   }
   // Admin dashboard
   await redis.del("admin-dashboard");
+  await redis.del(`seller-dashboard:${sellerId}`);
   // ==========================
 
   return {
@@ -630,6 +633,7 @@ export const changeProductStatus = async (productId, status) => {
     await redis.del(...adminProductKeys);
   }
   await redis.del("admin-dashboard");
+  await redis.del(`seller-dashboard:${sellerId}`);
   return {
     message: "Product status updated successfully",
     product: updatedProduct,

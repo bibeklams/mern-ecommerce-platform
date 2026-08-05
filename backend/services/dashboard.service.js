@@ -9,7 +9,11 @@ export const getAdminDashboard = async () => {
   // =======================
   // Users
   // =======================
-
+  const cacheKey = `admin-dashboard`;
+  const cache = await redis.get(cacheKey);
+  if (cache) {
+    return JSON.parse(cache);
+  }
   const totalUsers = await userRepository.countUsers({
     role: "USER",
     isVerified: true,
@@ -111,7 +115,7 @@ export const getAdminDashboard = async () => {
   // Final Response
   // =======================
 
-  return {
+  const result = {
     // Users
 
     totalUsers,
@@ -143,6 +147,8 @@ export const getAdminDashboard = async () => {
 
     recentOrders,
   };
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+  return result;
 };
 // =======================
 // Seller Dashboard
